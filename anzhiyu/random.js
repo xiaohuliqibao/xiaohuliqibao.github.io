@@ -1,3 +1,3 @@
-var posts=["2023/11/07/hello-world/"];function toRandomPost(){
+var posts=["2023/11/07/hello-world/","2023/11/07/01-someword/","2023/11/07/Png2Webp/","2023/11/07/SQL/","2023/11/07/change-table/","2023/11/07/express01/","2023/11/07/fineBI/","2023/11/07/firewall/","2023/11/07/fr1101/","2023/11/07/fr1102/","2023/11/07/fr1103/","2023/11/07/fr1104/","2023/11/07/kotlin-file/","2023/11/07/linux-user-manegement/","2023/11/07/miraibot01/","2023/11/07/miraibot02/","2023/11/07/miraibot03/","2023/11/07/miraibot04/","2023/11/07/miraibot05/","2023/11/07/miraibot06/","2023/11/07/miraibot07/","2023/11/07/miraibot08/","2023/11/07/miraibot09/","2023/11/07/nodejs-install/","2023/11/07/oracle-tns/","2023/11/07/oracle_pivot/","2023/11/07/oracledatabase-sga/","2023/11/07/qieru/","2023/11/07/toad4oracle/","2023/11/07/vite-proxy/","2023/11/07/vscode-server/"];function toRandomPost(){
     pjax.loadUrl('/'+posts[Math.floor(Math.random() * posts.length)]);
   };

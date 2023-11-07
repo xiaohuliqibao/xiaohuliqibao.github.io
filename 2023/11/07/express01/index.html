@@ -1,0 +1,410 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"><title>Blog的二次开发-上传图片 | 七宝的小窝</title><meta name="keywords" content="express,hexo"><meta name="author" content="Qibao,xiaohuliqibao@gmail.com"><meta name="copyright" content="Qibao"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#f7f9fe"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-touch-fullscreen" content="yes"><meta name="apple-mobile-web-app-title" content="Blog的二次开发-上传图片"><meta name="application-name" content="Blog的二次开发-上传图片"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="#f7f9fe"><meta property="og:type" content="article"><meta property="og:title" content="Blog的二次开发-上传图片"><meta property="og:url" content="http://blog.qibao.icu/2023/11/07/express01/index.html"><meta property="og:site_name" content="七宝的小窝"><meta property="og:description" content="之前想着的是使用狼宝来上传博客图片，后来规划了一下，发现这个不是很适合使用直觉，后来问了好多次ChatGpt发现上传图片都需要有一个后端的服务器，然后就接触到了express。在ChatGpt的真实帮助下用express写了一个上传图片的客户端。 Express介绍Express是一个流行的Node"><meta property="og:locale" content="zh-CN"><meta property="og:image" content="https://resources.qibao.icu/img/deemo/booksprites_10.webp"><meta property="article:author" content="Qibao"><meta property="article:tag" content="blog"><meta name="twitter:card" content="summary"><meta name="twitter:image" content="https://resources.qibao.icu/img/deemo/booksprites_10.webp"><meta name="description" content="之前想着的是使用狼宝来上传博客图片，后来规划了一下，发现这个不是很适合使用直觉，后来问了好多次ChatGpt发现上传图片都需要有一个后端的服务器，然后就接触到了express。在ChatGpt的真实帮助下用express写了一个上传图片的客户端。 Express介绍Express是一个流行的Node"><link rel="shortcut icon" href="/favicon.ico"><link rel="canonical" href="http://blog.qibao.icu/2023/11/07/express01/"><link rel="preconnect" href="//cdn.cbd.int"/><meta name="google-site-verification" content="xxx"/><meta name="baidu-site-verification" content="code-xxx"/><meta name="msvalidate.01" content="xxx"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.cbd.int/node-snackbar@0.1.16/dist/snackbar.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.cbd.int/@fancyapps/ui@5.0.20/dist/fancybox/fancybox.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://npm.elemecdn.com/anzhiyu-theme-static@1.0.0/swiper/swiper.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  linkPageTop: undefined,
+  peoplecanvas: {"enable":true,"img":"https://upload-bbs.miyoushe.com/upload/2023/09/03/125766904/ee23df8517f3c3e3efc4145658269c06_5714860933110284659.png"},
+  postHeadAiDescription: {"enable":true,"gptName":"AnZhiYu","mode":"local","switchBtn":false,"btnLink":"https://afdian.net/item/886a79d4db6711eda42a52540025c377","randomNum":3,"basicWordCount":1000,"key":"xxxx","Referer":"https://xx.xx/"},
+  diytitle: {"enable":true,"leaveTitle":"w(ﾟДﾟ)w 不要走！再看看嘛！","backTitle":"♪(^∇^*)欢迎肥来！"},
+  LA51: undefined,
+  greetingBox: undefined,
+  twikooEnvId: '',
+  commentBarrageConfig:undefined,
+  root: '/',
+  preloader: {"source":3},
+  friends_vue_info: undefined,
+  navMusic: true,
+  mainTone: undefined,
+  authorStatus: undefined,
+  algolia: undefined,
+  localSearch: undefined,
+  translate: {"defaultEncoding":2,"translateDelay":0,"msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"简","rightMenuMsgToTraditionalChinese":"转为繁体","rightMenuMsgToSimplifiedChinese":"转为简体"},
+  noticeOutdate: {"limitDay":365,"position":"top","messagePrev":"It has been","messageNext":"days since the last update, the content of the article may be outdated."},
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":330},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    simplehomepage: true,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"copy":true,"copyrightEbable":false,"limitCount":50,"languages":{"author":"作者: Qibao","link":"链接: ","source":"来源: 七宝的小窝","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。","copySuccess":"复制成功，复制和转载请标注本文地址"}},
+  lightbox: 'fancybox',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#425AEF","bgDark":"#1f1f1f","position":"top-center"},
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.cbd.int/flickr-justified-gallery@2.1.2/dist/fjGallery.min.js',
+      css: 'https://cdn.cbd.int/flickr-justified-gallery@2.1.2/dist/fjGallery.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: true,
+  isAnchor: false,
+  shortcutKey: undefined,
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  configTitle: '七宝的小窝',
+  title: 'Blog的二次开发-上传图片',
+  postAI: '',
+  pageFillDescription: 'Express介绍, 初始化Express项目, 开始自定义, 修改访问端口和地址, 添加整体需要的模块x2F依赖, 修改routerx2Findex.js 添加上传图片的路由和功能, 多图片上传, 启动express, 上传页面（还在新建文件夹）之前想着的是使用狼宝来上传博客图片后来规划了一下发现这个不是很适合使用直觉后来问了好多次发现上传图片都需要有一个后端的服务器然后就接触到了在的真实帮助下用写了一个上传图片的客户端介绍是一个流行的应用程序框架它简化了构建应用程序和的过程它提供了一组简洁而灵活的功能使得处理请求路由中间件和视图模板等任务变得更加容易下面是一些框架的主要特点快速而简洁具有简洁的设计使得构建应用程序变得简单而直观它提供了一些核心功能同时也允许开发者根据需求进行扩展路由提供了灵活的路由功能可以根据路径和方法来处理请求通过定义路由您可以将不同的请求映射到相应的处理程序函数使代码结构清晰且易于维护中间件的中间件是处理请求的函数它们可以执行各种任务例如身份验证日志记录错误处理等中间件函数可以按照顺序串联起来形成一个处理请求的管道这种模式使得处理请求的逻辑可以被分解为可重用的组件模板引擎支持各种模板引擎例如以前称为等这些模板引擎使得在服务器端生成动态变得容易可以方便地将数据注入到模板中生成最终的响应中间件和路由的生态系统有一个庞大的中间件和路由插件生态系统可以帮助开发者快速集成各种功能如身份验证会话管理数据库连接等这些插件可以大大提高开发效率并且经过了广泛的测试和使用总的来说是一个轻量级灵活且易于使用的框架适用于构建各种类型的应用程序和它的简单性和丰富的生态系统使得开发者可以更快地构建高性能的应用程序并以可维护的方式组织和扩展代码就是人类之光初始化项目这部分是跟着教程网站的一个引导走的站点首先你的有其次使用安装生成器接着在一个空目录下使用然后使用安装依赖最后在使用启动项目浏览器中导航至就可以访问该应用你应该可以看到图片目录结构约个子文件夹和文件开始自定义修改访问端口和地址由于整体是在服务器上开发所有我们测试的时候需要调整端口和开启外网访问在文件中加入如下的代码添加整体需要的模块依赖图片上传的功能需要是用来处理上传文件后将图片信息写到博客对应的配置文件里是上传文件的主要模块是图片处理模块把所有的图片都转化为了格式放到指定的位置修改添加上传图片的路由和功能首先还是引入依赖设置上载的目录其实没什么屌用因为我有新增上载的路由重命名图片名字并图片格式转化修改博客配置文件查找为的数据更新无法读取文件整体代码修改中的查找为的数据无法读取文件多图片上传启动使用启动就好了上传页面还在新建文件夹',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2023-11-07 16:17:58',
+  postMainColor: '',
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+      win.saveToLocal = {
+        set: (key, value, ttl) => {
+          if (ttl === 0) return
+          const now = Date.now()
+          const expiry = now + ttl * 86400000
+          const item = {
+            value,
+            expiry
+          }
+          localStorage.setItem(key, JSON.stringify(item))
+        },
+      
+        get: key => {
+          const itemStr = localStorage.getItem(key)
+      
+          if (!itemStr) {
+            return undefined
+          }
+          const item = JSON.parse(itemStr)
+          const now = Date.now()
+      
+          if (now > item.expiry) {
+            localStorage.removeItem(key)
+            return undefined
+          }
+          return item.value
+        }
+      }
+    
+      win.getScript = (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        script.onerror = reject
+        script.onload = script.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          script.onload = script.onreadystatechange = null
+          resolve()
+        }
+
+        Object.keys(attr).forEach(key => {
+          script.setAttribute(key, attr[key])
+        })
+
+        document.head.appendChild(script)
+      })
+    
+      win.getCSS = (url, id = false) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onerror = reject
+        link.onload = link.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          link.onload = link.onreadystatechange = null
+          resolve()
+        }
+        document.head.appendChild(link)
+      })
+    
+      win.activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#18171d')
+        }
+      }
+      win.activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#f7f9fe')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+          const isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+          const isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+          const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+          if (t === undefined) {
+            if (isLightMode) activateLightMode()
+            else if (isDarkMode) activateDarkMode()
+            else if (isNotSpecified || hasNoSupport) {
+              const now = new Date()
+              const hour = now.getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            window.matchMedia('(prefers-color-scheme: dark)').addListener(e => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else if (t === 'light') activateLightMode()
+          else activateDarkMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+      const detectApple = () => {
+        if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+          document.documentElement.classList.add('apple')
+        }
+      }
+      detectApple()
+    })(window)</script><meta name="generator" content="Hexo 7.0.0"></head><body data-type="anzhiyu"><div id="web_bg"></div><div id="an_music_bg"></div><div id="loading-box" onclick="document.getElementById(&quot;loading-box&quot;).classList.add(&quot;loaded&quot;)"><div class="loading-bg"><img class="loading-img nolazyload" alt="加载头像" src="https://npm.elemecdn.com/anzhiyu-blog-static@1.0.4/img/avatar.jpg"/><div class="loading-image-dot"></div></div></div><script>const preloader = {
+  endLoading: () => {
+    document.getElementById('loading-box').classList.add("loaded");
+  },
+  initLoading: () => {
+    document.getElementById('loading-box').classList.remove("loaded")
+  }
+}
+window.addEventListener('load',()=> { preloader.endLoading() })
+setTimeout(function(){preloader.endLoading();},10000)
+
+if (true) {
+  document.addEventListener('pjax:send', () => { preloader.initLoading() })
+  document.addEventListener('pjax:complete', () => { preloader.endLoading() })
+}</script><link rel="stylesheet" href="https://cdn.cbd.int/anzhiyu-theme-static@1.1.10/progress_bar/progress_bar.css"/><script async="async" src="https://cdn.cbd.int/pace-js@1.2.4/pace.min.js" data-pace-options="{ &quot;restartOnRequestAfter&quot;:false,&quot;eventLag&quot;:false}"></script><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><div id="nav-group"><span id="blog_name"><a id="site-name" href="/" accesskey="h"><div class="title">七宝的小窝</div><i class="anzhiyufont anzhiyu-icon-house-chimney"></i></a></span><div class="mask-name-container"><div id="name-container"><a id="page-name" href="javascript:anzhiyu.scrollToDest(0, 500)">PAGE_NAME</a></div></div><div id="menus"></div><div id="nav-right"><div class="nav-button" id="randomPost_button"><a class="site-page" onclick="toRandomPost()" title="随机前往一个文章" href="javascript:void(0);"><i class="anzhiyufont anzhiyu-icon-dice"></i></a></div><input id="center-console" type="checkbox"/><label class="widget" for="center-console" title="中控台" onclick="anzhiyu.switchConsole();"><i class="left"></i><i class="widget center"></i><i class="widget right"></i></label><div id="console"><div class="console-card-group-reward"><ul class="reward-all console-card"><li class="reward-item"><a href="https://npm.elemecdn.com/anzhiyu-blog@1.1.6/img/post/common/qrcode-weichat.png" target="_blank"><img class="post-qr-code-img" alt="微信" src="https://npm.elemecdn.com/anzhiyu-blog@1.1.6/img/post/common/qrcode-weichat.png"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="https://npm.elemecdn.com/anzhiyu-blog@1.1.6/img/post/common/qrcode-alipay.png" target="_blank"><img class="post-qr-code-img" alt="支付宝" src="https://npm.elemecdn.com/anzhiyu-blog@1.1.6/img/post/common/qrcode-alipay.png"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div><div class="console-card-group"><div class="console-card-group-left"><div class="console-card" id="card-newest-comments"><div class="card-content"><div class="author-content-item-tips">互动</div><span class="author-content-item-title"> 最新评论</span></div><div class="aside-list"><span>正在加载中...</span></div></div></div><div class="console-card-group-right"><div class="console-card tags"><div class="card-content"><div class="author-content-item-tips">兴趣点</div><span class="author-content-item-title">寻找你感兴趣的领域</span><div class="card-tags"><div class="item-headline"></div><div class="card-tag-cloud"><a href="/tags/BI/" style="font-size: 1.05rem;">BI<sup>1</sup></a><a href="/tags/Firewall/" style="font-size: 1.05rem;">Firewall<sup>1</sup></a><a href="/tags/Hexo/" style="font-size: 1.05rem;">Hexo<sup>1</sup></a><a href="/tags/Kotlin/" style="font-size: 1.05rem;">Kotlin<sup>10</sup></a><a href="/tags/Linux/" style="font-size: 1.05rem;">Linux<sup>2</sup></a><a href="/tags/MiraiBot/" style="font-size: 1.05rem;">MiraiBot<sup>9</sup></a><a href="/tags/Oracle/" style="font-size: 1.05rem;">Oracle<sup>5</sup></a><a href="/tags/PL-SQL/" style="font-size: 1.05rem;">PL/SQL<sup>1</sup></a><a href="/tags/SQLite/" style="font-size: 1.05rem;">SQLite<sup>1</sup></a><a href="/tags/Toad/" style="font-size: 1.05rem;">Toad<sup>1</sup></a><a href="/tags/User/" style="font-size: 1.05rem;">User<sup>1</sup></a><a href="/tags/Vite/" style="font-size: 1.05rem;">Vite<sup>1</sup></a><a href="/tags/Vue/" style="font-size: 1.05rem;">Vue<sup>1</sup></a><a href="/tags/express/" style="font-size: 1.05rem;">express<sup>1</sup></a><a href="/tags/hexo/" style="font-size: 1.05rem;">hexo<sup>1</sup></a><a href="/tags/kotlin/" style="font-size: 1.05rem;">kotlin<sup>1</sup></a><a href="/tags/network/" style="font-size: 1.05rem;">network<sup>1</sup></a><a href="/tags/nginx/" style="font-size: 1.05rem;">nginx<sup>2</sup></a><a href="/tags/nodejs/" style="font-size: 1.05rem;">nodejs<sup>1</sup></a><a href="/tags/python/" style="font-size: 1.05rem;">python<sup>1</sup></a><a href="/tags/utf-8/" style="font-size: 1.05rem;">utf-8<sup>1</sup></a><a href="/tags/vscode/" style="font-size: 1.05rem;">vscode<sup>1</sup></a><a href="/tags/%E4%B8%BB%E9%A2%98/" style="font-size: 1.05rem;">主题<sup>1</sup></a><a href="/tags/%E5%9B%BE%E7%89%87%E5%A4%84%E7%90%86/" style="font-size: 1.05rem;">图片处理<sup>1</sup></a><a href="/tags/%E5%B8%86%E8%BD%AF/" style="font-size: 1.05rem;">帆软<sup>5</sup></a><a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 1.05rem;">数据库<sup>3</sup></a><a href="/tags/%E8%AF%9D%E7%97%A8/" style="font-size: 1.05rem;">话痨<sup>1</sup></a><a href="/tags/%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6/" style="font-size: 1.05rem;">配置文件<sup>1</sup></a><a href="/tags/%E9%9A%8F%E4%BE%BF%E5%86%99%E5%86%99/" style="font-size: 1.05rem;">随便写写<sup>1</sup></a><a href="/tags/%E9%A2%98%E7%9B%AE/" style="font-size: 1.05rem;">题目<sup>4</sup></a></div></div><hr/></div></div><div class="console-card history"><div class="item-headline"><i class="anzhiyufont anzhiyu-icon-box-archiv"></i><span>文章</span></div><div class="card-archives"><div class="item-headline"><i class="anzhiyufont anzhiyu-icon-archive"></i><span>归档</span></div><ul class="card-archive-list"><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2023/11/"><span class="card-archive-list-date">十一月 2023</span><div class="card-archive-list-count-group"><span class="card-archive-list-count">31</span><span>篇</span></div></a></li></ul></div><hr/></div></div></div><div class="button-group"><div class="console-btn-item"><a class="darkmode_switchbutton" title="显示模式切换" href="javascript:void(0);"><i class="anzhiyufont anzhiyu-icon-moon"></i></a></div><div class="console-btn-item" id="consoleHideAside" onclick="anzhiyu.hideAsideBtn()" title="边栏显示控制"><a class="asideSwitch"><i class="anzhiyufont anzhiyu-icon-arrows-left-right"></i></a></div><div class="console-btn-item" id="consoleMusic" onclick="anzhiyu.musicToggle()" title="音乐开关"><a class="music-switch"><i class="anzhiyufont anzhiyu-icon-music"></i></a></div></div><div class="console-mask" onclick="anzhiyu.hideConsole()" href="javascript:void(0);"></div></div><div class="nav-button" id="nav-totop"><a class="totopbtn" href="javascript:void(0);"><i class="anzhiyufont anzhiyu-icon-arrow-up"></i><span id="percent" onclick="anzhiyu.scrollToDest(0,500)">0</span></a></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);" title="切换"><i class="anzhiyufont anzhiyu-icon-bars"></i></a></div></div></div></nav><div id="post-info"><div id="post-firstinfo"><div class="meta-firstline"><a class="post-meta-original">原创</a><span class="post-meta-categories"><span class="post-meta-separator"></span><i class="anzhiyufont anzhiyu-icon-inbox post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%8D%9A%E5%AE%A2/" itemprop="url">博客</a></span><span class="article-meta tags"><a class="article-meta__tags" href="/tags/express/" tabindex="-1" itemprop="url"> <span> <i class="anzhiyufont anzhiyu-icon-hashtag"></i>express</span></a><a class="article-meta__tags" href="/tags/hexo/" tabindex="-1" itemprop="url"> <span> <i class="anzhiyufont anzhiyu-icon-hashtag"></i>hexo</span></a></span></div></div><h1 class="post-title" itemprop="name headline">Blog的二次开发-上传图片</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="anzhiyufont anzhiyu-icon-calendar-days post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" itemprop="dateCreated datePublished" datetime="2023-11-07T08:17:58.222Z" title="发表于 2023-11-07 16:17:58">2023-11-07</time><span class="post-meta-separator"></span><i class="anzhiyufont anzhiyu-icon-history post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" itemprop="dateCreated datePublished" datetime="2023-11-07T08:17:58.224Z" title="更新于 2023-11-07 16:17:58">2023-11-07</time></span></div><div class="meta-secondline"><span class="post-meta-separator">       </span><span class="post-meta-position" title="作者IP属地为长沙"><i class="anzhiyufont anzhiyu-icon-location-dot"></i>长沙</span></div></div></div><section class="main-hero-waves-area waves-area"><svg class="waves-svg" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" viewBox="0 24 150 28" preserveAspectRatio="none" shape-rendering="auto"><defs><path id="gentle-wave" d="M -160 44 c 30 0 58 -18 88 -18 s 58 18 88 18 s 58 -18 88 -18 s 58 18 88 18 v 44 h -352 Z"></path></defs><g class="parallax"><use href="#gentle-wave" x="48" y="0"></use><use href="#gentle-wave" x="48" y="3"></use><use href="#gentle-wave" x="48" y="5"></use><use href="#gentle-wave" x="48" y="7"></use></g></svg></section><div id="post-top-cover"><img class="nolazyload" id="post-top-bg" src="https://resources.qibao.icu/img/deemo/booksprites_10.webp"></div></header><main id="blog-container"><div class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container" itemscope itemtype="http://blog.qibao.icu/2023/11/07/express01/"><header><a class="post-meta-categories" href="/categories/%E5%8D%9A%E5%AE%A2/" itemprop="url">博客</a><a href="/tags/express/" tabindex="-1" itemprop="url">express</a><a href="/tags/hexo/" tabindex="-1" itemprop="url">hexo</a><h1 id="CrawlerTitle" itemprop="name headline">Blog的二次开发-上传图片</h1><span itemprop="author" itemscope itemtype="http://schema.org/Person">Qibao</span><time itemprop="dateCreated datePublished" datetime="2023-11-07T08:17:58.222Z" title="发表于 2023-11-07 16:17:58">2023-11-07</time><time itemprop="dateCreated datePublished" datetime="2023-11-07T08:17:58.224Z" title="更新于 2023-11-07 16:17:58">2023-11-07</time></header><p>之前想着的是使用狼宝来上传博客图片，后来规划了一下，发现这个不是很适合使用直觉，后来问了好多次ChatGpt发现上传图片都需要有一个后端的服务器，然后就接触到了express。在ChatGpt的真实帮助下用express写了一个上传图片的客户端。</p>
+<h3 id="Express介绍"><a href="#Express介绍" class="headerlink" title="Express介绍"></a>Express介绍</h3><p>Express是一个流行的Node.js Web应用程序框架，它简化了构建Web应用程序和API的过程。它提供了一组简洁而灵活的功能，使得处理HTTP请求、路由、中间件和视图模板等任务变得更加容易。</p>
+<p>下面是一些Express框架的主要特点：</p>
+<ol>
+<li><p><strong>快速而简洁</strong>: Express具有简洁的API设计，使得构建Web应用程序变得简单而直观。它提供了一些核心功能，同时也允许开发者根据需求进行扩展。</p>
+</li>
+<li><p><strong>路由</strong>: Express提供了灵活的路由功能，可以根据URL路径和HTTP方法来处理请求。通过定义路由，您可以将不同的请求映射到相应的处理程序函数，使代码结构清晰且易于维护。</p>
+</li>
+<li><p><strong>中间件</strong>: Express的中间件是处理HTTP请求的函数。它们可以执行各种任务，例如身份验证、日志记录、错误处理等。中间件函数可以按照顺序串联起来，形成一个处理请求的管道。这种模式使得处理请求的逻辑可以被分解为可重用的组件。</p>
+</li>
+<li><p><strong>模板引擎</strong>: Express支持各种模板引擎，例如EJS、Pug（以前称为Jade）、Handlebars等。这些模板引擎使得在服务器端生成动态HTML变得容易，可以方便地将数据注入到模板中，生成最终的响应。</p>
+</li>
+<li><p><strong>中间件和路由的生态系统</strong>: Express有一个庞大的中间件和路由插件生态系统，可以帮助开发者快速集成各种功能，如身份验证、会话管理、数据库连接等。这些插件可以大大提高开发效率，并且经过了广泛的测试和使用。</p>
+</li>
+</ol>
+<p>总的来说，Express是一个轻量级、灵活且易于使用的框架，适用于构建各种类型的Web应用程序和API。它的简单性和丰富的生态系统使得开发者可以更快地构建高性能的Web应用程序，并以可维护的方式组织和扩展代码。</p>
+<p>ChatGpt就是人类之光！！！</p>
+<h3 id="初始化Express项目"><a href="#初始化Express项目" class="headerlink" title="初始化Express项目"></a>初始化Express项目</h3><p>这部分是跟着教程网站的一个引导走的<a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Learn/Server-side/Express_Nodejs/skeleton_website">站点</a></p>
+<p>首先你的有nodejs，其次使用 npm install express-generator -g 安装生成器，接着在一个空目录下使用express –view&#x3D;pug ，然后使用npm install 安装依赖，最后在使用npm run start启动项目。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">npm install express-generator -g</span><br><span class="line">mkdir express-tutorial &amp;&amp; cd express-tutorial</span><br><span class="line">express --view=pug</span><br><span class="line">npm run start</span><br></pre></td></tr></table></figure>
+
+<p>浏览器中导航至 <a target="_blank" rel="noopener" href="http://localhost:3000/">http://localhost:3000/</a> ，就可以访问该应用。你应该可以看到：<br>[图片]</p>
+<p>目录结构</p>
+<pre>/express-locallibrary-tutorial
+    app.js
+    /bin
+        www
+    package.json
+    /node_modules
+        [约 4,500 个子文件夹和文件]
+    /public
+        /images
+        /javascripts
+        /stylesheets
+            style.css
+    /routes
+        index.js
+        users.js
+    /views
+        error.pug
+        index.pug
+        layout.pug
+</pre>
+
+<h3 id="开始自定义"><a href="#开始自定义" class="headerlink" title="开始自定义"></a>开始自定义</h3><h4 id="修改访问端口和地址"><a href="#修改访问端口和地址" class="headerlink" title="修改访问端口和地址"></a>修改访问端口和地址</h4><p>由于整体是在服务器上开发，所有我们测试的时候需要调整端口和开启外网访问。在app.js文件中加入如下的代码：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">app.<span class="title function_">listen</span>(<span class="number">17777</span>,<span class="string">&#x27;0.0.0.0&#x27;</span>, <span class="function">() =&gt;</span> &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;Server started on port 17777&#x27;</span>);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<h4 id="添加整体需要的模块-依赖"><a href="#添加整体需要的模块-依赖" class="headerlink" title="添加整体需要的模块&#x2F;依赖"></a>添加整体需要的模块&#x2F;依赖</h4><p>图片上传的功能需要js-yaml、multer、sharp<br>js-yaml是用来处理上传文件后将图片信息写到博客对应的配置文件里。<br>multer是上传文件的主要模块<br>sharp是图片处理模块，把所有的图片都转化为了webp格式放到指定的位置。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm install js-yaml multer sharp --save</span><br></pre></td></tr></table></figure>
+
+<h4 id="修改router-index-js-添加上传图片的路由和功能"><a href="#修改router-index-js-添加上传图片的路由和功能" class="headerlink" title="修改router&#x2F;index.js 添加上传图片的路由和功能"></a>修改router&#x2F;index.js 添加上传图片的路由和功能</h4><p>首先还是引入依赖<br>var sharp &#x3D; require(‘sharp’);<br>var multer &#x3D; require(‘multer’);<br>var fs &#x3D; require(‘fs’);<br>var yaml &#x3D; require(‘js-yaml’);</p>
+<p>设置上载的目录<br>var uploadDest &#x3D; multer({dest: ‘.&#x2F;tmp&#x2F;‘}) &#x2F;&#x2F; 其实没什么屌用因为我有sharp</p>
+<p>新增上载的路由<br>router.post(‘&#x2F;upload&#x2F;:path?’,uploadDest.single(‘image’), function(req, res, next) {});</p>
+<p>重命名图片名字并图片格式转化<br>const filenameNew &#x3D; new Date().getTime();<br>sharp(req.file.path)<br>  .webp({ quality: 80 })<br>  .toFile(<code>/root/file/resources/img/$&#123;req.params.path&#125;/$&#123;filenameNew&#125;.webp</code>, (err, info) &#x3D;&gt; {<br>    if (err) {<br>      console.error(err);<br>      res.status(500).send(‘Internal Server Error’);<br>    } else {<br>      console.log(info);<br>      return res.send(‘Image uploaded and converted to webp’);<br>    }<br>});</p>
+<p>修改博客配置文件<br>try {<br>  const yamlData &#x3D; fs.readFileSync(‘&#x2F;root&#x2F;code&#x2F;blog&#x2F;source&#x2F;_data&#x2F;album.yml’, ‘utf8’);<br>  const parsedData &#x3D; yaml.load(yamlData);<br>  &#x2F;&#x2F; 查找path_name为&#x2F;foodPhoto的数据<br>  parsedData.find(item &#x3D;&gt; item.path_name &#x3D;&#x3D;&#x3D; <code>/$&#123;req.params.path&#125;Photo</code>).album_list[0].image.push(<code>https://resources.qibao.icu/img/$&#123;req.params.path&#125;&#123;filenameNew&#125;.webp</code>);<br>  const updatedYamlData &#x3D; yaml.dump(parsedData);<br>  fs.writeFileSync(‘&#x2F;root&#x2F;code&#x2F;blog&#x2F;source&#x2F;_data&#x2F;album.yml’, updatedYamlData, ‘utf8’);<br>  &#x2F;&#x2F;更新blog<br>  return res.send(‘seccess’);<br>}catch (err) {<br>  console.error(‘无法读取YAML文件：’, err);<br>}</p>
+<p>整体index.js代码：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> express = <span class="built_in">require</span>(<span class="string">&#x27;express&#x27;</span>);</span><br><span class="line"><span class="keyword">var</span> sharp = <span class="built_in">require</span>(<span class="string">&#x27;sharp&#x27;</span>);</span><br><span class="line"><span class="keyword">var</span> multer = <span class="built_in">require</span>(<span class="string">&#x27;multer&#x27;</span>);</span><br><span class="line"><span class="keyword">var</span> fs = <span class="built_in">require</span>(<span class="string">&#x27;fs&#x27;</span>);</span><br><span class="line"><span class="keyword">var</span> yaml = <span class="built_in">require</span>(<span class="string">&#x27;js-yaml&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> router = express.<span class="title class_">Router</span>();</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> uploadDest = <span class="title function_">multer</span>(&#123;<span class="attr">dest</span>: <span class="string">&#x27;./tmp/&#x27;</span>&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment">/* GET home page. */</span></span><br><span class="line">router.<span class="title function_">get</span>(<span class="string">&#x27;/&#x27;</span>, <span class="keyword">function</span>(<span class="params">req, res, next</span>) &#123;</span><br><span class="line">  res.<span class="title function_">render</span>(<span class="string">&#x27;index&#x27;</span>, &#123; <span class="attr">title</span>: <span class="string">&#x27;Express&#x27;</span> &#125;);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">/*upload single file  */</span></span><br><span class="line">router.<span class="title function_">post</span>(<span class="string">&#x27;/upload/:path?&#x27;</span>,uploadDest.<span class="title function_">single</span>(<span class="string">&#x27;image&#x27;</span>), <span class="keyword">function</span>(<span class="params">req, res, next</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> filenameNew = <span class="keyword">new</span> <span class="title class_">Date</span>().<span class="title function_">getTime</span>();</span><br><span class="line">  <span class="title function_">sharp</span>(req.<span class="property">file</span>.<span class="property">path</span>)</span><br><span class="line">    .<span class="title function_">webp</span>(&#123; <span class="attr">quality</span>: <span class="number">80</span> &#125;)</span><br><span class="line">    .<span class="title function_">toFile</span>(<span class="string">`/root/file/resources/img/<span class="subst">$&#123;req.params.path&#125;</span>/<span class="subst">$&#123;filenameNew&#125;</span>.webp`</span>, <span class="function">(<span class="params">err, info</span>) =&gt;</span> &#123;</span><br><span class="line">      <span class="keyword">if</span> (err) &#123;</span><br><span class="line">        <span class="variable language_">console</span>.<span class="title function_">error</span>(err);</span><br><span class="line">        res.<span class="title function_">status</span>(<span class="number">500</span>).<span class="title function_">send</span>(<span class="string">&#x27;Internal Server Error&#x27;</span>);</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="variable language_">console</span>.<span class="title function_">log</span>(info);</span><br><span class="line">        <span class="comment">//修改blog中的album.yml</span></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">          <span class="keyword">const</span> yamlData = fs.<span class="title function_">readFileSync</span>(<span class="string">&#x27;/root/code/blog/source/_data/album.yml&#x27;</span>, <span class="string">&#x27;utf8&#x27;</span>);</span><br><span class="line">          <span class="keyword">const</span> parsedData = yaml.<span class="title function_">load</span>(yamlData);</span><br><span class="line">          <span class="comment">// 查找path_name为/foodPhoto的数据</span></span><br><span class="line">          parsedData.<span class="title function_">find</span>(<span class="function"><span class="params">item</span> =&gt;</span> item.<span class="property">path_name</span> === <span class="string">`/<span class="subst">$&#123;req.params.path&#125;</span>Photo`</span>).<span class="property">album_list</span>[<span class="number">0</span>].<span class="property">image</span>.<span class="title function_">push</span>(<span class="string">`https://resources.qibao.icu/img/<span class="subst">$&#123;req.params.path&#125;</span>/<span class="subst">$&#123;filenameNew&#125;</span>.webp`</span>);</span><br><span class="line">          <span class="keyword">const</span> updatedYamlData = yaml.<span class="title function_">dump</span>(parsedData);  </span><br><span class="line">          fs.<span class="title function_">writeFileSync</span>(<span class="string">&#x27;/root/code/blog/source/_data/album.yml&#x27;</span>, updatedYamlData, <span class="string">&#x27;utf8&#x27;</span>);</span><br><span class="line">          <span class="keyword">return</span> res.<span class="title function_">send</span>(<span class="string">&#x27;Image uploaded and converted to webp&#x27;</span>);</span><br><span class="line">        &#125;<span class="keyword">catch</span> (err) &#123;</span><br><span class="line">          <span class="variable language_">console</span>.<span class="title function_">error</span>(<span class="string">&#x27;无法读取YAML文件：&#x27;</span>, err);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> res.<span class="title function_">send</span>(<span class="string">&#x27;Image uploaded and converted to webp&#x27;</span>);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="variable language_">module</span>.<span class="property">exports</span> = router;</span><br></pre></td></tr></table></figure>
+
+<h4 id="多图片上传"><a href="#多图片上传" class="headerlink" title="多图片上传"></a>多图片上传</h4><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">router.<span class="title function_">post</span>(<span class="string">&#x27;/uploads/:path?&#x27;</span>,uploadDest.<span class="title function_">array</span>(<span class="string">&#x27;images&#x27;</span>,<span class="number">9</span>), <span class="keyword">function</span>(<span class="params">req, res, next</span>) &#123;</span><br><span class="line">  req.<span class="property">files</span>.<span class="title function_">forEach</span>(<span class="function"><span class="params">file</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> filenameNew = <span class="keyword">new</span> <span class="title class_">Date</span>().<span class="title function_">getTime</span>();</span><br><span class="line">    <span class="title function_">sharp</span>(file.<span class="property">path</span>)</span><br><span class="line">      .<span class="title function_">webp</span>(&#123; <span class="attr">quality</span>: <span class="number">80</span> &#125;)</span><br><span class="line">      .<span class="title function_">toFile</span>(<span class="string">`/usr/qibao/upload/<span class="subst">$&#123;req.params.path&#125;</span>/<span class="subst">$&#123;filenameNew&#125;</span>.webp`</span>, <span class="function">(<span class="params">err, info</span>) =&gt;</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (err) &#123;</span><br><span class="line">          <span class="variable language_">console</span>.<span class="title function_">error</span>(err);</span><br><span class="line">          res.<span class="title function_">status</span>(<span class="number">500</span>).<span class="title function_">send</span>(<span class="string">&#x27;Internal Server Error&#x27;</span>);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">          <span class="variable language_">console</span>.<span class="title function_">log</span>(info);</span><br><span class="line">          res.<span class="title function_">send</span>(<span class="string">&#x27;Images uploaded and converted to webp&#x27;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;);</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<h4 id="启动express"><a href="#启动express" class="headerlink" title="启动express"></a>启动express</h4><p>使用npm run start启动就好了</p>
+<h3 id="上传页面（还在新建文件夹）"><a href="#上传页面（还在新建文件夹）" class="headerlink" title="上传页面（还在新建文件夹）"></a>上传页面（还在新建文件夹）</h3></article><div class="post-copyright"><div class="copyright-cc-box"><i class="anzhiyufont anzhiyu-icon-copyright"></i></div><div class="post-copyright__author_box"><a class="post-copyright__author_img" href="/" title="头像"><img class="post-copyright__author_img_back" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://bu.dusays.com/2023/04/27/64496e511b09c.jpg" title="头像" alt="头像"><img class="post-copyright__author_img_front" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://bu.dusays.com/2023/04/27/64496e511b09c.jpg" title="头像" alt="头像"></a><div class="post-copyright__author_name">Qibao</div><div class="post-copyright__author_desc">不积跬步，无以至千里</div></div><div class="post-copyright__post__info"><a class="post-copyright__original" title="该文章为原创文章，注意版权协议" href="http://blog.qibao.icu/2023/11/07/express01/">原创</a><a class="post-copyright-title"><span onclick="rm.copyPageUrl('http://blog.qibao.icu/2023/11/07/express01/')">Blog的二次开发-上传图片</span></a></div><div class="post-tools" id="post-tools"><div class="post-tools-left"><div class="rewardLeftButton"><div class="post-reward" onclick="anzhiyu.addRewardMask()"><div class="reward-button button--animated" title="赞赏作者"><i class="anzhiyufont anzhiyu-icon-hand-heart-fill"></i>打赏作者</div><div class="reward-main"><div class="reward-all"><span class="reward-title">感谢你赐予我前进的力量</span><ul class="reward-group"><li class="reward-item"><a href="https://npm.elemecdn.com/anzhiyu-blog@1.1.6/img/post/common/qrcode-weichat.png" target="_blank"><img class="post-qr-code-img" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://npm.elemecdn.com/anzhiyu-blog@1.1.6/img/post/common/qrcode-weichat.png" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="https://npm.elemecdn.com/anzhiyu-blog@1.1.6/img/post/common/qrcode-alipay.png" target="_blank"><img class="post-qr-code-img" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://npm.elemecdn.com/anzhiyu-blog@1.1.6/img/post/common/qrcode-alipay.png" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul><a class="reward-main-btn" href="/about/#about-reward" target="_blank"><div class="reward-text">赞赏者名单</div><div class="reward-dec">因为你们的支持让我意识到写文章的价值🙏</div></a></div></div></div><div id="quit-box" onclick="anzhiyu.removeRewardMask()" style="display: none"></div></div><div class="shareRight"><div class="share-link mobile"><div class="share-qrcode"><div class="share-button" title="使用手机访问这篇文章"><i class="anzhiyufont anzhiyu-icon-qrcode"></i></div><div class="share-main"><div class="share-main-all"><div id="qrcode" title="http://blog.qibao.icu/2023/11/07/express01/"></div><div class="reward-dec">使用手机访问这篇文章</div></div></div></div></div><div class="share-link weibo"><a class="share-button" target="_blank" href="https://service.weibo.com/share/share.php?title=Blog的二次开发-上传图片&amp;url=http://blog.qibao.icu/2023/11/07/express01/&amp;pic=https://resources.qibao.icu/img/deemo/booksprites_10.webp" rel="external nofollow noreferrer noopener"><i class="anzhiyufont anzhiyu-icon-weibo"></i></a></div><script>function copyCurrentPageUrl() {
+  var currentPageUrl = window.location.href;
+  var input = document.createElement("input");
+  input.setAttribute("value", currentPageUrl);
+  document.body.appendChild(input);
+  input.select();
+  input.setSelectionRange(0, 99999);
+  document.execCommand("copy");
+  document.body.removeChild(input);
+}</script><div class="share-link copyurl"><div class="share-button" id="post-share-url" title="复制链接" onclick="copyCurrentPageUrl()"><i class="anzhiyufont anzhiyu-icon-link"></i></div></div></div></div></div><div class="post-copyright__notice"><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://blog.qibao.icu" target="_blank">七宝的小窝</a>！</span></div></div><div class="post-tools-right"><div class="tag_share"><div class="post-meta__box"><div class="post-meta__box__tag-list"><a class="post-meta__box__tags" href="/tags/express/"><span class="tags-punctuation"> <i class="anzhiyufont anzhiyu-icon-tag"></i></span>express<span class="tagsPageCount">1</span></a><a class="post-meta__box__tags" href="/tags/hexo/"><span class="tags-punctuation"> <i class="anzhiyufont anzhiyu-icon-tag"></i></span>hexo<span class="tagsPageCount">1</span></a></div></div></div><div class="post_share"><div class="social-share" data-image="https://resources.qibao.icu/img/deemo/booksprites_12.webp" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.cbd.int/butterfly-extsrc@1.1.3/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"/><script src="https://cdn.cbd.int/butterfly-extsrc@1.1.3/sharejs/dist/js/social-share.min.js" defer="defer"></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2023/11/07/miraibot01/"><img class="prev-cover" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://resources.qibao.icu/img/deemo/imagining.webp" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">基于MiraiBot的简单开发(基础配置)</div></div></a></div><div class="next-post pull-right"><a href="/2023/11/07/oracledatabase-sga/"><img class="next-cover" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://resources.qibao.icu/img/deemo/booksprites_11.webp" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">Oracle数据库的缓存管理机制</div></div></a></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="card-content"><div class="author-info-avatar"><img class="avatar-img" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://bu.dusays.com/2023/04/27/64496e511b09c.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__description">欢迎来到七宝的小窝</div></div></div><div class="card-widget anzhiyu-right-widget" id="card-wechat" onclick="null"><div id="flip-wrapper"><div id="flip-content"><div class="face" style="background: url(https://bu.dusays.com/2023/01/13/63c02edf44033.png) center center / 100% no-repeat"></div><div class="back face" style="background: url(https://bu.dusays.com/2023/05/13/645fa415e8694.png) center center / 100% no-repeat"></div></div></div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="anzhiyufont anzhiyu-icon-bars"></i><span>文章目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#Express%E4%BB%8B%E7%BB%8D"><span class="toc-number">1.</span> <span class="toc-text">Express介绍</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%9D%E5%A7%8B%E5%8C%96Express%E9%A1%B9%E7%9B%AE"><span class="toc-number">2.</span> <span class="toc-text">初始化Express项目</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BC%80%E5%A7%8B%E8%87%AA%E5%AE%9A%E4%B9%89"><span class="toc-number">3.</span> <span class="toc-text">开始自定义</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BF%AE%E6%94%B9%E8%AE%BF%E9%97%AE%E7%AB%AF%E5%8F%A3%E5%92%8C%E5%9C%B0%E5%9D%80"><span class="toc-number">3.1.</span> <span class="toc-text">修改访问端口和地址</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%B7%BB%E5%8A%A0%E6%95%B4%E4%BD%93%E9%9C%80%E8%A6%81%E7%9A%84%E6%A8%A1%E5%9D%97-%E4%BE%9D%E8%B5%96"><span class="toc-number">3.2.</span> <span class="toc-text">添加整体需要的模块&#x2F;依赖</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BF%AE%E6%94%B9router-index-js-%E6%B7%BB%E5%8A%A0%E4%B8%8A%E4%BC%A0%E5%9B%BE%E7%89%87%E7%9A%84%E8%B7%AF%E7%94%B1%E5%92%8C%E5%8A%9F%E8%83%BD"><span class="toc-number">3.3.</span> <span class="toc-text">修改router&#x2F;index.js 添加上传图片的路由和功能</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%A4%9A%E5%9B%BE%E7%89%87%E4%B8%8A%E4%BC%A0"><span class="toc-number">3.4.</span> <span class="toc-text">多图片上传</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%90%AF%E5%8A%A8express"><span class="toc-number">3.5.</span> <span class="toc-text">启动express</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%8A%E4%BC%A0%E9%A1%B5%E9%9D%A2%EF%BC%88%E8%BF%98%E5%9C%A8%E6%96%B0%E5%BB%BA%E6%96%87%E4%BB%B6%E5%A4%B9%EF%BC%89"><span class="toc-number">4.</span> <span class="toc-text">上传页面（还在新建文件夹）</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="anzhiyufont anzhiyu-icon-history"></i><span>最近发布</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2023/11/07/SQL/" title="PL/SQL编程详解"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://resources.qibao.icu/img/deemo/booksprites_12.webp" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PL/SQL编程详解"/></a><div class="content"><a class="title" href="/2023/11/07/SQL/" title="PL/SQL编程详解">PL/SQL编程详解</a><time datetime="2023-11-07T08:17:58.224Z" title="发表于 2023-11-07 16:17:58">2023-11-07</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/11/07/oracledatabase-sga/" title="Oracle数据库的缓存管理机制"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://resources.qibao.icu/img/deemo/booksprites_11.webp" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Oracle数据库的缓存管理机制"/></a><div class="content"><a class="title" href="/2023/11/07/oracledatabase-sga/" title="Oracle数据库的缓存管理机制">Oracle数据库的缓存管理机制</a><time datetime="2023-11-07T08:17:58.224Z" title="发表于 2023-11-07 16:17:58">2023-11-07</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/11/07/express01/" title="Blog的二次开发-上传图片"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://resources.qibao.icu/img/deemo/booksprites_10.webp" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Blog的二次开发-上传图片"/></a><div class="content"><a class="title" href="/2023/11/07/express01/" title="Blog的二次开发-上传图片">Blog的二次开发-上传图片</a><time datetime="2023-11-07T08:17:58.222Z" title="发表于 2023-11-07 16:17:58">2023-11-07</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/11/07/miraibot01/" title="基于MiraiBot的简单开发(基础配置)"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://resources.qibao.icu/img/deemo/imagining.webp" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="基于MiraiBot的简单开发(基础配置)"/></a><div class="content"><a class="title" href="/2023/11/07/miraibot01/" title="基于MiraiBot的简单开发(基础配置)">基于MiraiBot的简单开发(基础配置)</a><time datetime="2023-11-07T08:17:58.219Z" title="发表于 2023-11-07 16:17:58">2023-11-07</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/11/07/miraibot02/" title="基于MiraiBot的简单开发(消息类型)"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://resources.qibao.icu/img/deemo/MN2cradle.webp" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="基于MiraiBot的简单开发(消息类型)"/></a><div class="content"><a class="title" href="/2023/11/07/miraibot02/" title="基于MiraiBot的简单开发(消息类型)">基于MiraiBot的简单开发(消息类型)</a><time datetime="2023-11-07T08:17:58.219Z" title="发表于 2023-11-07 16:17:58">2023-11-07</time></div></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"></div><div id="footer-bar"><div class="footer-bar-links"><div class="footer-bar-left"><div id="footer-bar-tips"><div class="copyright">&copy;2020 - 2023 By <a class="footer-bar-link" href="/" title="Qibao" target="_blank">Qibao</a></div></div><div id="footer-type-tips"></div></div><div class="footer-bar-right"><a class="footer-bar-link" target="_blank" rel="noopener" href="https://github.com/anzhiyu-c/hexo-theme-anzhiyu" title="主题">主题</a></div></div></div></footer></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="sidebar-site-data site-data is-center"><a href="/archives/" title="archive"><div class="headline">文章</div><div class="length-num">31</div></a><a href="/tags/" title="tag"><div class="headline">标签</div><div class="length-num">30</div></a><a href="/categories/" title="category"><div class="headline">分类</div><div class="length-num">3</div></a></div><span class="sidebar-menu-item-title">功能</span><div class="sidebar-menu-item"><a class="darkmode_switchbutton menu-child" href="javascript:void(0);" title="显示模式"><i class="anzhiyufont anzhiyu-icon-circle-half-stroke"></i><span>显示模式</span></a></div><div class="back-menu-list-groups"><div class="back-menu-list-group"><div class="back-menu-list-title">网页</div><div class="back-menu-list"><a class="back-menu-item" target="_blank" rel="noopener" href="https://blog.anheyu.com/" title="博客"><img class="back-menu-item-icon" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="/img/favicon.ico" alt="博客"/><span class="back-menu-item-text">博客</span></a></div></div><div class="back-menu-list-group"><div class="back-menu-list-title">项目</div><div class="back-menu-list"><a class="back-menu-item" target="_blank" rel="noopener" href="https://image.anheyu.com/" title="安知鱼图床"><img class="back-menu-item-icon" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://image.anheyu.com/favicon.ico" alt="安知鱼图床"/><span class="back-menu-item-text">安知鱼图床</span></a></div></div></div><span class="sidebar-menu-item-title">标签</span><div class="card-tags"><div class="item-headline"></div><div class="card-tag-cloud"><a href="/tags/BI/" style="font-size: 0.88rem;">BI<sup>1</sup></a><a href="/tags/Firewall/" style="font-size: 0.88rem;">Firewall<sup>1</sup></a><a href="/tags/Hexo/" style="font-size: 0.88rem;">Hexo<sup>1</sup></a><a href="/tags/Kotlin/" style="font-size: 0.88rem;">Kotlin<sup>10</sup></a><a href="/tags/Linux/" style="font-size: 0.88rem;">Linux<sup>2</sup></a><a href="/tags/MiraiBot/" style="font-size: 0.88rem;">MiraiBot<sup>9</sup></a><a href="/tags/Oracle/" style="font-size: 0.88rem;">Oracle<sup>5</sup></a><a href="/tags/PL-SQL/" style="font-size: 0.88rem;">PL/SQL<sup>1</sup></a><a href="/tags/SQLite/" style="font-size: 0.88rem;">SQLite<sup>1</sup></a><a href="/tags/Toad/" style="font-size: 0.88rem;">Toad<sup>1</sup></a><a href="/tags/User/" style="font-size: 0.88rem;">User<sup>1</sup></a><a href="/tags/Vite/" style="font-size: 0.88rem;">Vite<sup>1</sup></a><a href="/tags/Vue/" style="font-size: 0.88rem;">Vue<sup>1</sup></a><a href="/tags/express/" style="font-size: 0.88rem;">express<sup>1</sup></a><a href="/tags/hexo/" style="font-size: 0.88rem;">hexo<sup>1</sup></a><a href="/tags/kotlin/" style="font-size: 0.88rem;">kotlin<sup>1</sup></a><a href="/tags/network/" style="font-size: 0.88rem;">network<sup>1</sup></a><a href="/tags/nginx/" style="font-size: 0.88rem;">nginx<sup>2</sup></a><a href="/tags/nodejs/" style="font-size: 0.88rem;">nodejs<sup>1</sup></a><a href="/tags/python/" style="font-size: 0.88rem;">python<sup>1</sup></a><a href="/tags/utf-8/" style="font-size: 0.88rem;">utf-8<sup>1</sup></a><a href="/tags/vscode/" style="font-size: 0.88rem;">vscode<sup>1</sup></a><a href="/tags/%E4%B8%BB%E9%A2%98/" style="font-size: 0.88rem;">主题<sup>1</sup></a><a href="/tags/%E5%9B%BE%E7%89%87%E5%A4%84%E7%90%86/" style="font-size: 0.88rem;">图片处理<sup>1</sup></a><a href="/tags/%E5%B8%86%E8%BD%AF/" style="font-size: 0.88rem;">帆软<sup>5</sup></a><a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 0.88rem;">数据库<sup>3</sup></a><a href="/tags/%E8%AF%9D%E7%97%A8/" style="font-size: 0.88rem;">话痨<sup>1</sup></a><a href="/tags/%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6/" style="font-size: 0.88rem;">配置文件<sup>1</sup></a><a href="/tags/%E9%9A%8F%E4%BE%BF%E5%86%99%E5%86%99/" style="font-size: 0.88rem;">随便写写<sup>1</sup></a><a href="/tags/%E9%A2%98%E7%9B%AE/" style="font-size: 0.88rem;">题目<sup>4</sup></a></div></div><hr/></div></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="anzhiyufont anzhiyu-icon-book-open"></i></button><button id="translateLink" type="button" title="简繁转换">繁</button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="anzhiyufont anzhiyu-icon-circle-half-stroke"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="anzhiyufont anzhiyu-icon-arrows-left-right"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="anzhiyufont anzhiyu-icon-gear"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="anzhiyufont anzhiyu-icon-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="anzhiyufont anzhiyu-icon-arrow-up"></i></button></div></div><div id="nav-music"><a id="nav-music-hoverTips" onclick="anzhiyu.musicToggle()" accesskey="m">播放音乐</a><div id="console-music-bg"></div><meting-js id="8152976493" server="netease" type="playlist" mutex="true" preload="none" theme="var(--anzhiyu-main)" data-lrctype="0" order="random"></meting-js></div><div id="rightMenu"><div class="rightMenu-group rightMenu-small"><div class="rightMenu-item" id="menu-backward"><i class="anzhiyufont anzhiyu-icon-arrow-left"></i></div><div class="rightMenu-item" id="menu-forward"><i class="anzhiyufont anzhiyu-icon-arrow-right"></i></div><div class="rightMenu-item" id="menu-refresh"><i class="anzhiyufont anzhiyu-icon-arrow-rotate-right" style="font-size: 1rem;"></i></div><div class="rightMenu-item" id="menu-top"><i class="anzhiyufont anzhiyu-icon-arrow-up"></i></div></div><div class="rightMenu-group rightMenu-line rightMenuPlugin"><div class="rightMenu-item" id="menu-copytext"><i class="anzhiyufont anzhiyu-icon-copy"></i><span>复制选中文本</span></div><div class="rightMenu-item" id="menu-pastetext"><i class="anzhiyufont anzhiyu-icon-paste"></i><span>粘贴文本</span></div><a class="rightMenu-item" id="menu-commenttext"><i class="anzhiyufont anzhiyu-icon-comment-medical"></i><span>引用到评论</span></a><div class="rightMenu-item" id="menu-newwindow"><i class="anzhiyufont anzhiyu-icon-window-restore"></i><span>新窗口打开</span></div><div class="rightMenu-item" id="menu-copylink"><i class="anzhiyufont anzhiyu-icon-link"></i><span>复制链接地址</span></div><div class="rightMenu-item" id="menu-copyimg"><i class="anzhiyufont anzhiyu-icon-images"></i><span>复制此图片</span></div><div class="rightMenu-item" id="menu-downloadimg"><i class="anzhiyufont anzhiyu-icon-download"></i><span>下载此图片</span></div><div class="rightMenu-item" id="menu-newwindowimg"><i class="anzhiyufont anzhiyu-icon-window-restore"></i><span>新窗口打开图片</span></div><div class="rightMenu-item" id="menu-search"><i class="anzhiyufont anzhiyu-icon-magnifying-glass"></i><span>站内搜索</span></div><div class="rightMenu-item" id="menu-searchBaidu"><i class="anzhiyufont anzhiyu-icon-magnifying-glass"></i><span>百度搜索</span></div><div class="rightMenu-item" id="menu-music-toggle"><i class="anzhiyufont anzhiyu-icon-play"></i><span>播放音乐</span></div><div class="rightMenu-item" id="menu-music-back"><i class="anzhiyufont anzhiyu-icon-backward"></i><span>切换到上一首</span></div><div class="rightMenu-item" id="menu-music-forward"><i class="anzhiyufont anzhiyu-icon-forward"></i><span>切换到下一首</span></div><div class="rightMenu-item" id="menu-music-playlist" onclick="window.open(&quot;https://y.qq.com/n/ryqq/playlist/8802438608&quot;, &quot;_blank&quot;);" style="display: none;"><i class="anzhiyufont anzhiyu-icon-radio"></i><span>查看所有歌曲</span></div><div class="rightMenu-item" id="menu-music-copyMusicName"><i class="anzhiyufont anzhiyu-icon-copy"></i><span>复制歌名</span></div></div><div class="rightMenu-group rightMenu-line rightMenuOther"><a class="rightMenu-item menu-link" id="menu-randomPost"><i class="anzhiyufont anzhiyu-icon-shuffle"></i><span>随便逛逛</span></a><a class="rightMenu-item menu-link" href="/categories/"><i class="anzhiyufont anzhiyu-icon-cube"></i><span>博客分类</span></a><a class="rightMenu-item menu-link" href="/tags/"><i class="anzhiyufont anzhiyu-icon-tags"></i><span>文章标签</span></a></div><div class="rightMenu-group rightMenu-line rightMenuOther"><a class="rightMenu-item" id="menu-copy" href="javascript:void(0);"><i class="anzhiyufont anzhiyu-icon-copy"></i><span>复制地址</span></a><a class="rightMenu-item" id="menu-commentBarrage" href="javascript:void(0);"><i class="anzhiyufont anzhiyu-icon-message"></i><span class="menu-commentBarrage-text">关闭热评</span></a><a class="rightMenu-item" id="menu-darkmode" href="javascript:void(0);"><i class="anzhiyufont anzhiyu-icon-circle-half-stroke"></i><span class="menu-darkmode-text">深色模式</span></a><a class="rightMenu-item" id="menu-translate" href="javascript:void(0);"><i class="anzhiyufont anzhiyu-icon-language"></i><span>轉為繁體</span></a></div></div><div id="rightmenu-mask"></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/tw_cn.js"></script><script src="https://cdn.cbd.int/@fancyapps/ui@5.0.20/dist/fancybox/fancybox.umd.js"></script><script src="https://cdn.cbd.int/instant.page@5.2.0/instantpage.js" type="module"></script><script src="https://cdn.cbd.int/vanilla-lazyload@17.8.4/dist/lazyload.iife.min.js"></script><script src="https://cdn.cbd.int/node-snackbar@0.1.16/dist/snackbar.min.js"></script><canvas id="universe"></canvas><script async src="https://npm.elemecdn.com/anzhiyu-theme-static@1.0.0/dark/dark.js"></script><script>// 消除控制台打印
+var HoldLog = console.log;
+console.log = function () {};
+let now1 = new Date();
+queueMicrotask(() => {
+  const Log = function () {
+    HoldLog.apply(console, arguments);
+  }; //在恢复前输出日志
+  const grt = new Date("04/01/2021 00:00:00"); //此处修改你的建站时间或者网站上线时间
+  now1.setTime(now1.getTime() + 250);
+  const days = (now1 - grt) / 1000 / 60 / 60 / 24;
+  const dnum = Math.floor(days);
+  const ascll = [
+    `欢迎使用安知鱼!`,
+    `生活明朗, 万物可爱`,
+    `
+        
+       █████╗ ███╗   ██╗███████╗██╗  ██╗██╗██╗   ██╗██╗   ██╗
+      ██╔══██╗████╗  ██║╚══███╔╝██║  ██║██║╚██╗ ██╔╝██║   ██║
+      ███████║██╔██╗ ██║  ███╔╝ ███████║██║ ╚████╔╝ ██║   ██║
+      ██╔══██║██║╚██╗██║ ███╔╝  ██╔══██║██║  ╚██╔╝  ██║   ██║
+      ██║  ██║██║ ╚████║███████╗██║  ██║██║   ██║   ╚██████╔╝
+      ╚═╝  ╚═╝╚═╝  ╚═══╝╚══════╝╚═╝  ╚═╝╚═╝   ╚═╝    ╚═════╝
+        
+        `,
+    "已上线",
+    dnum,
+    "天",
+    "©2020 By 安知鱼 V1.6.9",
+  ];
+  const ascll2 = [`NCC2-036`, `调用前置摄像头拍照成功，识别为【小笨蛋】.`, `Photo captured: `, `🤪`];
+
+  setTimeout(
+    Log.bind(
+      console,
+      `\n%c${ascll[0]} %c ${ascll[1]} %c ${ascll[2]} %c${ascll[3]}%c ${ascll[4]}%c ${ascll[5]}\n\n%c ${ascll[6]}\n`,
+      "color:#425AEF",
+      "",
+      "color:#425AEF",
+      "color:#425AEF",
+      "",
+      "color:#425AEF",
+      ""
+    )
+  );
+  setTimeout(
+    Log.bind(
+      console,
+      `%c ${ascll2[0]} %c ${ascll2[1]} %c \n${ascll2[2]} %c\n${ascll2[3]}\n`,
+      "color:white; background-color:#4fd953",
+      "",
+      "",
+      'background:url("https://npm.elemecdn.com/anzhiyu-blog@1.1.6/img/post/common/tinggge.gif") no-repeat;font-size:450%'
+    )
+  );
+
+  setTimeout(Log.bind(console, "%c WELCOME %c 你好，小笨蛋.", "color:white; background-color:#4f90d9", ""));
+
+  setTimeout(
+    console.warn.bind(
+      console,
+      "%c ⚡ Powered by 安知鱼 %c 你正在访问 Qibao 的博客.",
+      "color:white; background-color:#f0ad4e",
+      ""
+    )
+  );
+
+  setTimeout(Log.bind(console, "%c W23-12 %c 你已打开控制台.", "color:white; background-color:#4f90d9", ""));
+
+  setTimeout(
+    console.warn.bind(console, "%c S013-782 %c 你现在正处于监控中.", "color:white; background-color:#d9534f", "")
+  );
+});</script><script async src="/anzhiyu/random.js"></script><div class="js-pjax"><input type="hidden" name="page-type" id="page-type" value="post"></div><script>var visitorMail = "visitor@anheyu.com";
+</script><script async data-pjax src="https://cdn.cbd.int/anzhiyu-theme-static@1.0.0/waterfall/waterfall.js"></script><script src="https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/qrcodejs/1.0.0/qrcode.min.js"></script><link rel="stylesheet" href="https://cdn.cbd.int/anzhiyu-theme-static@1.1.9/icon/ali_iconfont_css.css"><link rel="stylesheet" href="https://cdn.cbd.int/anzhiyu-theme-static@1.0.0/aplayer/APlayer.min.css" media="print" onload="this.media='all'"><script src="https://cdn.cbd.int/anzhiyu-blog-static@1.0.1/js/APlayer.min.js"></script><script src="https://cdn.cbd.int/hexo-anzhiyu-music@1.0.1/assets/js/Meting2.min.js"></script><script src="https://cdn.cbd.int/pjax@0.2.8/pjax.min.js"></script><script>let pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+var pjax = new Pjax({
+  elements: 'a:not([target="_blank"])',
+  selectors: pjaxSelectors,
+  cacheBust: false,
+  analytics: false,
+  scrollRestoration: false
+})
+
+document.addEventListener('pjax:send', function () {
+  // removeEventListener scroll 
+  anzhiyu.removeGlobalFnEvent('pjax')
+  anzhiyu.removeGlobalFnEvent('themeChange')
+
+  document.getElementById('rightside').classList.remove('rightside-show')
+  
+  if (window.aplayers) {
+    for (let i = 0; i < window.aplayers.length; i++) {
+      if (!window.aplayers[i].options.fixed) {
+        window.aplayers[i].destroy()
+      }
+    }
+  }
+
+  typeof typed === 'object' && typed.destroy()
+
+  //reset readmode
+  const $bodyClassList = document.body.classList
+  $bodyClassList.contains('read-mode') && $bodyClassList.remove('read-mode')
+})
+
+document.addEventListener('pjax:complete', function () {
+  window.refreshFn()
+
+  document.querySelectorAll('script[data-pjax]').forEach(item => {
+    const newScript = document.createElement('script')
+    const content = item.text || item.textContent || item.innerHTML || ""
+    Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+    newScript.appendChild(document.createTextNode(content))
+    item.parentNode.replaceChild(newScript, item)
+  })
+
+  GLOBAL_CONFIG.islazyload && window.lazyLoadInstance.update()
+
+  typeof panguInit === 'function' && panguInit()
+
+  // google analytics
+  typeof gtag === 'function' && gtag('config', '', {'page_path': window.location.pathname});
+
+  // baidu analytics
+  typeof _hmt === 'object' && _hmt.push(['_trackPageview',window.location.pathname]);
+
+  typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting()
+
+  // prismjs
+  typeof Prism === 'object' && Prism.highlightAll()
+})
+
+document.addEventListener('pjax:error', e => {
+  if (e.request.status === 404) {
+    pjax.loadUrl('/404.html')
+  }
+})</script><script charset="UTF-8" src="https://cdn.cbd.int/anzhiyu-theme-static@1.1.5/accesskey/accesskey.js"></script></div><div id="popup-window"><div class="popup-window-title">通知</div><div class="popup-window-divider"></div><div class="popup-window-content"><div class="popup-tip">你好呀</div><div class="popup-link"><i class="anzhiyufont anzhiyu-icon-arrow-circle-right"></i></div></div></div></body></html>
