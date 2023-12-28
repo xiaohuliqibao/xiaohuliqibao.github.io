@@ -1,0 +1,1218 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>Oracle数据库的缓存管理机制 | 七宝的小窝</title><meta name="keywords" content="Oracle,数据库"><meta name="author" content="Qibao,xiaohuliqibao@gmail.com"><meta name="copyright" content="Qibao"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#f7f9fe"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-touch-fullscreen" content="yes"><meta name="apple-mobile-web-app-title" content="Oracle数据库的缓存管理机制"><meta name="application-name" content="Oracle数据库的缓存管理机制"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><link rel="bookmark" href="/img/siteicon/apple-touch-icon.png"><link rel="apple-touch-icon-precomposed" sizes="180x180" href="/img/siteicon/apple-touch-icon.png"><link rel="apple-touch-icon" sizes="192x192" href="/img/siteicon/apple-touch-icon.png"><link rel="apple-touch-icon" sizes="512x512" href="/img/siteicon/apple-touch-icon.png"><link rel="apple-touch-startup-image" media="screen and (device-width:320px) and (device-height:568px) and (-webkit-device-pixel-ratio:2) and (orientation:landscape)" href="/img/siteicon/splashIcons/icon_1136x640.png"><link rel="apple-touch-startup-image" media="screen and (device-width:320px) and (device-height:568px) and (-webkit-device-pixel-ratio:2) and (orientation:portrait)" href="/img/siteicon/splashIcons/icon_640x1136.png"><link rel="apple-touch-startup-image" media="screen and (device-width:414px) and (device-height:896px) and (-webkit-device-pixel-ratio:3) and (orientation:landscape)" href="/img/siteicon/splashIcons/icon_2688x1242.png"><link rel="apple-touch-startup-image" media="screen and (device-width:414px) and (device-height:896px) and (-webkit-device-pixel-ratio:2) and (orientation:landscape)" href="/img/siteicon/splashIcons/icon_1792x828.png"><link rel="apple-touch-startup-image" media="screen and (device-width:375px) and (device-height:812px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" href="/img/siteicon/splashIcons/icon_1125x2436.png"><link rel="apple-touch-startup-image" media="screen and (device-width:414px) and (device-height:896px) and (-webkit-device-pixel-ratio:2) and (orientation:portrait)" href="/img/siteicon/splashIcons/icon_828x1792.png"><link rel="apple-touch-startup-image" media="screen and (device-width:375px) and (device-height:812px) and (-webkit-device-pixel-ratio:3) and (orientation:landscape)" href="/img/siteicon/splashIcons/icon_2436x1125.png"><link rel="apple-touch-startup-image" media="screen and (device-width:414px) and (device-height:736px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" href="/img/siteicon/splashIcons/icon_1242x2208.png"><link rel="apple-touch-startup-image" media="screen and (device-width:414px) and (device-height:736px) and (-webkit-device-pixel-ratio:3) and (orientation:landscape)" href="/img/siteicon/splashIcons/icon_2208x1242.png"><link rel="apple-touch-startup-image" media="screen and (device-width:375px) and (device-height:667px) and (-webkit-device-pixel-ratio:2) and (orientation:landscape)" href="/img/siteicon/splashIcons/icon_1334x750.png"><link rel="apple-touch-startup-image" media="screen and (device-width:375px) and (device-height:667px) and (-webkit-device-pixel-ratio:2) and (orientation:portrait)" href="/img/siteicon/splashIcons/icon_750x1334.png"><link rel="apple-touch-startup-image" media="screen and (device-width:1024px) and (device-height:1366px) and (-webkit-device-pixel-ratio:2) and (orientation:landscape)" href="/img/siteicon/splashIcons/icon_2732x2048.png"><meta name="description" content="在之前的学习中，有幸学习过有关SGA的一些内容，但都是简单的介绍了其中的模块和对应的作用，当时也是刚接触到Oracle数据库，所以听下来都是一知半解，最近又接触到GPT之后，才想着用机器人来检索一下这方面的知识。 Oracle的缓存管理机制Oracle数据库的内存管理机制是基于SGA（System Global Area，系统全局区域）和PGA（Program Global Area，程序全局区域">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Oracle数据库的缓存管理机制">
+<meta property="og:url" content="http://blog.qibao.icu/2023/08/02/oracledatabase-sga/index.html">
+<meta property="og:site_name" content="七宝的小窝">
+<meta property="og:description" content="在之前的学习中，有幸学习过有关SGA的一些内容，但都是简单的介绍了其中的模块和对应的作用，当时也是刚接触到Oracle数据库，所以听下来都是一知半解，最近又接触到GPT之后，才想着用机器人来检索一下这方面的知识。 Oracle的缓存管理机制Oracle数据库的内存管理机制是基于SGA（System Global Area，系统全局区域）和PGA（Program Global Area，程序全局区域">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://resources.qibao.icu/img/deemo/booksprites_11.webp">
+<meta property="article:published_time" content="2023-08-02T08:13:33.657Z">
+<meta property="article:modified_time" content="2023-08-02T09:09:18.233Z">
+<meta property="article:author" content="Qibao">
+<meta property="article:tag" content="Oracle">
+<meta property="article:tag" content="数据库">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://resources.qibao.icu/img/deemo/booksprites_11.webp"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://blog.qibao.icu/2023/08/02/oracledatabase-sga/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><meta name="google-site-verification" content="xxx"/><meta name="baidu-site-verification" content="code-xxx"/><meta name="msvalidate.01" content="831C4E205A3B48AB0F096D3A5F72BC70"/><link rel="stylesheet" href="https://npm.elemecdn.com/hexo-butterfly-tag-plugins-plus@1.0.17/lib/assets/font-awesome-animation.min.css"><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://npm.elemecdn.com/@fortawesome/fontawesome-free@6.3.0/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://npm.elemecdn.com/node-snackbar@0.1.16/dist/snackbar.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://npm.elemecdn.com/@fancyapps/ui@4.0.31/dist/fancybox.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  navMusic: false,
+  algolia: {"appId":"MK0DGU80FJ","apiKey":"c92802892b69014af1d21f2e509990ec","indexName":"hexo","hits":{"per_page":6},"languages":{"input_placeholder":"键入后按下回车搜索！","hits_empty":"找不到您查询的内容：${query}","hits_stats":"找到 ${hits} 条结果，用时 ${time} 毫秒"}},
+  localSearch: undefined,
+  translate: {"defaultEncoding":2,"translateDelay":0,"msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"简"},
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":330},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#3bfc7f","bgDark":"#1f1f1f","position":"top-center"},
+  source: {
+    justifiedGallery: {
+      js: 'https://npm.elemecdn.com/flickr-justified-gallery@2.1.2/dist/fjGallery.min.js',
+      css: 'https://npm.elemecdn.com/flickr-justified-gallery@2.1.2/dist/fjGallery.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: true,
+  isAnchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Oracle数据库的缓存管理机制',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2023-08-02 17:09:18'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+    win.getCSS = (url,id = false) => new Promise((resolve, reject) => {
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = url
+      if (id) link.id = id
+      link.onerror = reject
+      link.onload = link.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        link.onload = link.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(link)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#18171d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#f7f9fe')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+          const isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+          const isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+          const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+          if (t === undefined) {
+            if (isLightMode) activateLightMode()
+            else if (isDarkMode) activateDarkMode()
+            else if (isNotSpecified || hasNoSupport) {
+              const now = new Date()
+              const hour = now.getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else if (t === 'light') activateLightMode()
+          else activateDarkMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><meta name="generator" content="Hexo 6.3.0"></head><body data-type="anzhiyu"><div id="web_bg"></div><div id="an_music_bg"></div><div class="post" id="body-wrap"><header class="not-top-img" id="page-header"><nav id="nav"><span id="blog_name"><div class="back-home-button" tabindex="-1"><i class="anzhiyufont anzhiyu-icon-grip-vertical"></i><div class="back-menu-list-groups"><div class="back-menu-list-group"><div class="back-menu-list-title">程序</div><div class="back-menu-list"><a class="back-menu-item" href="http://code.qibao.icu/" title="VS Code" target="_blank"><img class="back-menu-item-icon" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/favicon.png"/><span class="back-menu-item-text">VS Code</span></a></div></div><div class="back-menu-list-group"><div class="back-menu-list-title">娱乐</div><div class="back-menu-list"><a class="back-menu-item" href="https://twikoo.qibao.icu/" title="FC Games" target="_blank"><img class="back-menu-item-icon" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/fcgame.ico"/><span class="back-menu-item-text">FC Games</span></a></div></div></div></div><a id="site-name" href="/"><div class="title">七宝的小窝</div><i class="anzhiyufont anzhiyu-icon-house-chimney"></i></a></span><div class="mask-name-container"><center id="name-container"><a id="page-name" href="javascript:anzhiyu.scrollToDest(0, 500)">PAGE_NAME</a></center></div><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page faa-parent animated-hover" href="javascript:void(0);"><span> 文章</span></a><ul class="menus_item_child" style="left:-31px;"><li><a class="site-page child faa-parent animated-hover" href="/categories/"><i class="anzhiyufont anzhiyu-icon-shapes faa-tada" style="font-size: 0.9em;"></i><span> 分类</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/tags/"><i class="anzhiyufont anzhiyu-icon-tags faa-tada" style="font-size: 0.9em;"></i><span> 标签</span></a></li></ul></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="javascript:void(0);"><span> 我的</span></a><ul class="menus_item_child" style="left:-31px;"><li><a class="site-page child faa-parent animated-hover" href="/music/?id=1237321347&amp;server=tencent"><i class="anzhiyufont anzhiyu-icon-music faa-tada" style="font-size: 0.9em;"></i><span> 音乐馆</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/album/"><i class="anzhiyufont anzhiyu-icon-images faa-tada" style="font-size: 0.9em;"></i><span> 相册集</span></a></li></ul></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="javascript:void(0);"><span> 关于</span></a><ul class="menus_item_child" style="left:-31px;"><li><a class="site-page child faa-parent animated-hover" href="/about/"><i class="anzhiyufont anzhiyu-icon-paper-plane faa-tada" style="font-size: 0.9em;"></i><span> 关于本人</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/essay/"><i class="anzhiyufont anzhiyu-icon-lightbulb faa-tada" style="font-size: 0.9em;"></i><span> 闲言碎语</span></a></li></ul></div></div></div><div id="nav-right"><div class="nav-button" id="randomPost_button"><a class="site-page" onclick="toRandomPost()" title="随机前往一个文章" href="javascript:void(0);"><i class="anzhiyufont anzhiyu-icon-dice"></i></a></div><div class="nav-button" id="search-button"><a class="site-page social-icon search" href="javascript:void(0);" title="搜索🔍"><i class="anzhiyufont anzhiyu-icon-magnifying-glass"></i><span> 搜索</span></a></div><div class="nav-button" id="darkmode_navswitch"><a class="darkmode_switchbutton" type="button" href="javascript:void(0);" title="浅色和深色模式转换" onclick="rm.switchDarkMode()"><i class="anzhiyufont anzhiyu-icon-circle-half-stroke" style="font-size: 1.3rem"></i></a></div><div class="nav-button" id="nav-totop"><a class="totopbtn" href="javascript:void(0);"><i class="anzhiyufont anzhiyu-icon-arrow-up"></i><span id="percent" onclick="anzhiyu.scrollToDest(0,500)">0</span></a></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="anzhiyufont anzhiyu-icon-bars"></i></a></div></div></nav></header><main class="layout" id="content-inner"><div id="post"><div id="post-info"><h1 class="post-title">Oracle数据库的缓存管理机制</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="anzhiyufont anzhiyu-icon-calendar-days post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2023-08-02T08:13:33.657Z" title="发表于 2023-08-02 16:13:33">2023-08-02</time><span class="post-meta-separator">|</span><i class="anzhiyufont anzhiyu-icon-history post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2023-08-02T09:09:18.233Z" title="更新于 2023-08-02 17:09:18">2023-08-02</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="anzhiyufont anzhiyu-icon-inbox post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%8D%9A%E5%AE%A2/">博客</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="Oracle数据库的缓存管理机制"><i class="anzhiyufont anzhiyu-icon-fw-eye post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="anzhiyufont anzhiyu-icon-spinner anzhiyu-spin"></i></span></span></div></div></div><article class="post-content" id="article-container"><p>在之前的学习中，有幸学习过有关SGA的一些内容，但都是简单的介绍了其中的模块和对应的作用，当时也是刚接触到Oracle数据库，所以听下来都是一知半解，最近又接触到GPT之后，才想着用机器人来检索一下这方面的知识。</p>
+<h3 id="Oracle的缓存管理机制"><a href="#Oracle的缓存管理机制" class="headerlink" title="Oracle的缓存管理机制"></a>Oracle的缓存管理机制</h3><p>Oracle数据库的内存管理机制是基于SGA（System Global Area，系统全局区域）和PGA（Program Global Area，程序全局区域）的概念。</p>
+<ol>
+<li><p>SGA（System Global Area）：<br>SGA是Oracle数据库实例在内存中分配的一块共享内存区域，用于存储全局的数据和结构。SGA包括以下关键组件：</p>
+<ul>
+<li>数据缓冲区（Data Buffer Cache）：用于缓存数据库块（数据和索引）的内存区域，减少磁盘I&#x2F;O操作。</li>
+<li>共享池（Shared Pool）：存储共享的SQL和PL&#x2F;SQL代码、数据字典缓存和共享游标等，提高SQL执行效率。</li>
+<li>重做日志缓冲区（Redo Log Buffer）：用于缓存事务的重做日志信息，以支持数据库的恢复和故障恢复。</li>
+<li>大池（Large Pool）：存储较大的内存块，用于处理特定的操作，如备份和并行查询等。</li>
+<li>Java池（Java Pool）：用于存储Java对象和Java执行环境相关的内存结构。</li>
+<li>其他组件：包括SGA目标、缓冲区管理器等。</li>
+</ul>
+<p>Oracle数据库管理员可以通过参数调整来配置SGA的大小和组件的分配比例，以满足特定的性能需求。</p>
+</li>
+<li><p>PGA（Program Global Area）：<br>PGA是每个Oracle进程（如Server进程和后台进程）独立分配的内存区域，用于存储会话级别的数据和结构。PGA包括以下关键组件：</p>
+<ul>
+<li>排序区（Sort Area）：用于排序操作的内存区域。</li>
+<li>连接区（Session Memory）：存储会话级别的变量、游标和会话状态等信息。</li>
+<li>临时表区（Temporary Table Area）：用于存储临时表的数据。</li>
+<li>其他组件：包括SQL Work Area、PL&#x2F;SQL表和游标等。</li>
+</ul>
+<p>PGA的大小和分配是由Oracle自动管理的，但管理员可以通过参数调整来影响PGA的行为和资源分配。</p>
+</li>
+</ol>
+<p>通过合理配置和管理SGA和PGA，可以优化Oracle数据库的性能和资源利用率。管理员可以根据系统的负载、应用程序的需求和硬件资源的限制来进行调整，并监控内存使用情况以及性能指标，以确保数据库的稳定和高效运行。</p>
+<h3 id="什么是SGA"><a href="#什么是SGA" class="headerlink" title="什么是SGA"></a>什么是SGA</h3><p>SGA（System Global Area）是Oracle数据库实例在内存中分配的一块共享内存区域，包括多个组件，每个组件都有不同的作用和功能。以下是SGA中每个组件的详细介绍：</p>
+<ol>
+<li><p>数据缓冲区（Data Buffer Cache）：<br>数据缓冲区是SGA中最重要的组件之一，用于缓存数据库块（数据和索引）的内存区域。它的主要作用是减少磁盘I&#x2F;O操作，提高数据库的读取性能。当用户请求数据时，Oracle首先在数据缓冲区中查找数据块，如果找到则直接返回给用户，避免了磁盘读取的开销。</p>
+</li>
+<li><p>共享池（Shared Pool）：<br>共享池存储了共享的SQL和PL&#x2F;SQL代码、数据字典缓存和共享游标等。它的主要作用是提高SQL执行的效率和共享可重用的内存结构。当用户提交SQL语句时，Oracle首先检查共享池中是否存在相同的SQL语句，如果存在则直接使用已编译的执行计划，避免了重复的解析和优化过程。</p>
+</li>
+<li><p>重做日志缓冲区（Redo Log Buffer）：<br>重做日志缓冲区用于缓存事务的重做日志信息。在每个事务提交时，相关的重做日志记录会被写入重做日志缓冲区，然后由后台进程将其刷新到磁盘上的重做日志文件中。重做日志缓冲区的作用是支持数据库的恢复和故障恢复，确保事务的持久性和数据的一致性。</p>
+</li>
+<li><p>大池（Large Pool）：<br>大池是一个可选的组件，用于存储较大的内存块，主要用于处理特定的操作，如备份和并行查询等。大池的作用是提供额外的内存空间，以减轻SGA的压力，特别是在执行复杂操作时需要更多的临时内存空间。</p>
+</li>
+<li><p>Java池（Java Pool）：<br>Java池用于存储Java对象和Java执行环境相关的内存结构，主要用于支持Oracle数据库中的Java应用程序和Java虚拟机（JVM）。Java池的作用是提供Java执行所需的内存资源，包括Java类定义、Java堆栈和Java对象等。</p>
+</li>
+</ol>
+<p>除了上述主要组件之外，SGA还包括其他一些辅助组件，如SGA目标（SGA Target）、缓冲区管理器（Buffer Cache Manager）等。SGA目标是一种自动管理机制，用于根据系统负载和资源需求动态调整SGA的大小。缓冲区管理器负责管理数据缓冲区的内容和替换策略，以保证高效的数据访问和存储。</p>
+<p>通过合理配置和调整SGA的大小和组件的分配比例，可以根据系统的需求和资源限制来优化Oracle数据库的性能和资源利用率。管理员可以根据实际情况进行监控和调整，以确保SGA的稳定和高效运行。</p>
+<h4 id="什么是数据缓冲区"><a href="#什么是数据缓冲区" class="headerlink" title="什么是数据缓冲区"></a>什么是数据缓冲区</h4><p>数据缓冲区（Data Buffer Cache）是Oracle数据库SGA（System Global Area）中的一个组件，用于缓存数据库块（数据和索引）的内存区域。数据缓冲区主要存储以下类型的数据：</p>
+<ol>
+<li><p>数据块（Data Blocks）：<br>数据块是Oracle数据库中最基本的存储单位，用于存储表、索引和簇等对象的数据。当用户请求读取或修改表中的数据时，相关的数据块会被加载到数据缓冲区中。数据块的大小通常是Oracle数据库块大小的整数倍（通常为8KB），并且数据块是按需读取和写入的。</p>
+</li>
+<li><p>索引块（Index Blocks）：<br>索引块用于存储数据库索引的数据。索引是一种数据结构，用于加快对表数据的访问速度。当用户执行查询语句时，如果涉及到索引的使用，相关的索引块会被加载到数据缓冲区中，以提供更快的索引访问。</p>
+</li>
+<li><p>控制块（Control Blocks）：<br>控制块包括数据块头（Data Block Header）和索引块头（Index Block Header）等。它们存储了有关数据块和索引块的元数据信息，如块的状态、版本号、块的大小等。控制块通常也会被加载到数据缓冲区中，以支持对数据块和索引块的管理和访问。</p>
+</li>
+</ol>
+<p>当用户请求读取或修改数据库中的数据时，Oracle数据库会首先检查数据缓冲区中是否已经存在相应的数据块或索引块。如果存在，则直接从数据缓冲区中读取或修改数据，避免了磁盘I&#x2F;O操作，从而提高了数据库的读取性能。如果数据缓冲区中不存在所需的数据块或索引块，则需要从磁盘读取相应的块到数据缓冲区中，然后再进行数据访问或修改。</p>
+<p>通过数据缓冲区，Oracle数据库能够在内存中缓存常用的数据块和索引块，以提供更快的数据访问速度，并减少对磁盘的频繁读写，从而提高数据库的性能和响应速度。</p>
+<h4 id="数据缓冲区的数据是如何更替的？"><a href="#数据缓冲区的数据是如何更替的？" class="headerlink" title="数据缓冲区的数据是如何更替的？"></a>数据缓冲区的数据是如何更替的？</h4><p>数据缓冲区中数据块的替换是通过缓冲区管理器（Buffer Cache Manager）来进行的。缓冲区管理器负责管理数据缓冲区的内容和替换策略，以确保高效的数据访问和存储。</p>
+<p>Oracle数据库使用了一种称为LRU（Least Recently Used，最近最少使用）算法来进行数据块的替换。LRU算法基于以下原则：最近被访问的数据块是最有可能在未来被再次访问的，而较长时间没有被访问的数据块则可能被替换出缓冲区。</p>
+<p>当需要将一个新的数据块加载到数据缓冲区时，缓冲区管理器会首先检查数据缓冲区中是否有空闲的位置。如果有空闲位置，则将新的数据块直接放入空闲位置，并更新相关的元数据信息。</p>
+<p>如果数据缓冲区已满，缓冲区管理器需要选择一个合适的数据块进行替换。它会根据LRU算法选择最久未被访问的数据块进行替换。具体的替换过程如下：</p>
+<ol>
+<li><p>缓冲区管理器维护一个链表，称为LRU链表（Least Recently Used List），用于记录数据缓冲区中数据块的访问顺序。最近被访问的数据块位于链表的前端，而最久未被访问的数据块位于链表的末尾。</p>
+</li>
+<li><p>当需要替换一个数据块时，缓冲区管理器会选择链表末尾的数据块进行替换，即选择最久未被访问的数据块。</p>
+</li>
+<li><p>替换选中的数据块之前，缓冲区管理器会将其中的脏数据（已被修改但尚未写回磁盘的数据）写回到磁盘，以确保数据的持久性。</p>
+</li>
+<li><p>替换完成后，新的数据块会被加载到空出的位置，并更新LRU链表的顺序，将新的数据块放置在链表的前端。</p>
+</li>
+</ol>
+<p>通过使用LRU算法，Oracle数据库能够保持数据缓冲区中的常用数据块，提高数据的访问速度。同时，较长时间未被访问的数据块会被替换出缓冲区，以保持缓冲区的有效利用和适应变化的访问模式。</p>
+<h4 id="ARC自适应缓存交替算法"><a href="#ARC自适应缓存交替算法" class="headerlink" title="ARC自适应缓存交替算法"></a>ARC自适应缓存交替算法</h4><p>ARC（Adaptive Replacement Cache，自适应缓存交替）算法是一种用于替换数据缓冲区中数据块的混合算法，它结合了LRU算法和LFU算法的特性，旨在提供更好的缓存性能。</p>
+<p>ARC算法的设计目标是在不同的访问模式下自适应地选择最适合的替换策略。它维护两个列表：T1和T2。T1列表用于记录最近被访问的数据块，类似于LRU算法；T2列表用于记录最常被访问的数据块，类似于LFU算法。</p>
+<p>ARC算法的替换过程如下：</p>
+<ol>
+<li><p>当需要替换一个数据块时，ARC算法首先检查T1列表，如果数据块在T1列表中，则选择最近未被访问的数据块进行替换，类似于LRU算法。</p>
+</li>
+<li><p>如果数据块不在T1列表中，ARC算法会检查T2列表。如果数据块在T2列表中，则选择最近未被访问的数据块进行替换，类似于LRU算法。</p>
+</li>
+<li><p>如果数据块既不在T1列表中也不在T2列表中，ARC算法需要根据当前的访问模式来进行调整。它会根据两个列表的大小比例来判断当前的访问模式是偏向于LRU还是LFU。如果T1列表的大小比例较大，说明当前偏向于LRU访问模式，ARC算法会选择从T1列表中选择最近未被访问的数据块进行替换。如果T2列表的大小比例较大，说明当前偏向于LFU访问模式，ARC算法会选择从T2列表中选择最近未被访问的数据块进行替换。</p>
+</li>
+<li><p>替换完成后，ARC算法会根据替换的结果来调整T1和T2列表的大小，以适应不同的访问模式。如果替换的数据块来自T1列表，ARC算法会将一部分T1列表的数据块移动到T2列表中。如果替换的数据块来自T2列表，ARC算法会将一部分T2列表的数据块移动到T1列表中。</p>
+</li>
+</ol>
+<p>通过自适应地选择LRU和LFU替换策略，ARC算法能够根据实际的访问模式来优化数据缓冲区的性能。它可以适应不同的访问模式，提供更好的缓存命中率和数据访问性能。</p>
+<h4 id="其他更替算法"><a href="#其他更替算法" class="headerlink" title="其他更替算法"></a>其他更替算法</h4><p>除了LRU算法，Oracle数据库还支持其他一些替换算法来管理数据缓冲区中的数据块。以下是其中几种常见的算法：</p>
+<ol>
+<li><p>MRU（Most Recently Used，最近最常使用）算法：<br>MRU算法与LRU算法相反，它选择最近被访问的数据块进行替换。MRU算法假设最近被访问的数据块是最有可能在未来被再次访问的，因此选择最近被访问的数据块进行替换。</p>
+</li>
+<li><p>LFU（Least Frequently Used，最不经常使用）算法：<br>LFU算法根据数据块被访问的频率来进行替换。它记录每个数据块被访问的次数，并选择访问次数最少的数据块进行替换。LFU算法适用于一些访问模式呈现频繁变化的场景。</p>
+</li>
+<li><p>LRU-K算法：<br>LRU-K算法是对LRU算法的一种改进。它考虑了数据块的历史访问模式，除了最近被访问的数据块外，还考虑了最近K次访问的数据块。通过增加历史访问的考虑，LRU-K算法可以更好地适应特定的访问模式。</p>
+</li>
+</ol>
+<p>这些替换算法的选择取决于数据库管理员根据应用程序的访问模式和性能需求进行配置。Oracle数据库默认使用LRU算法，因为它在大多数情况下能够提供良好的性能。但在某些特殊情况下，根据实际需求选择其他算法可能会更加合适。</p>
+<h4 id="如何修改数据缓冲区的算法策略？"><a href="#如何修改数据缓冲区的算法策略？" class="headerlink" title="如何修改数据缓冲区的算法策略？"></a>如何修改数据缓冲区的算法策略？</h4><p>要修改Oracle数据库中数据缓冲区的算法策略，您可以采取以下步骤：</p>
+<ol>
+<li><p>确定当前的缓冲区算法策略：首先，您需要确定当前数据库实例正在使用的缓冲区算法策略。您可以查询数据库的参数设置或使用以下命令来获取当前的缓冲区算法策略：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SHOW</span> <span class="keyword">PARAMETER</span> db_cache_advice</span><br></pre></td></tr></table></figure>
+
+<p>该参数显示了当前数据库实例推荐的缓冲区大小和算法策略。</p>
+</li>
+<li><p>修改缓冲区算法策略：要修改缓冲区算法策略，您可以使用<code>ALTER SYSTEM</code>语句来更改相关的参数设置。以下是一些常用的参数和示例：</p>
+<ul>
+<li><p><code>DB_CACHE_SIZE</code>：该参数用于设置数据库实例的缓冲区大小。您可以根据实际需求调整缓冲区的大小，以适应数据库的工作负载。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">ALTER</span> <span class="keyword">SYSTEM</span> <span class="keyword">SET</span> DB_CACHE_SIZE <span class="operator">=</span> <span class="operator">&lt;</span>size<span class="operator">&gt;</span> [G<span class="operator">|</span>M<span class="operator">|</span>K];</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><code>DB_KEEP_CACHE_SIZE</code>：该参数用于设置保留缓冲区的大小。保留缓冲区用于存储经常访问的数据块，以提高缓存命中率。您可以根据常用数据块的大小和访问模式来调整保留缓冲区的大小。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">ALTER</span> <span class="keyword">SYSTEM</span> <span class="keyword">SET</span> DB_KEEP_CACHE_SIZE <span class="operator">=</span> <span class="operator">&lt;</span>size<span class="operator">&gt;</span> [G<span class="operator">|</span>M<span class="operator">|</span>K];</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><code>DB_RECYCLE_CACHE_SIZE</code>：该参数用于设置回收缓冲区的大小。回收缓冲区用于存储不常访问的数据块，以减少缓冲区的浪费。您可以根据不常用数据块的大小和访问模式来调整回收缓冲区的大小。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">ALTER</span> <span class="keyword">SYSTEM</span> <span class="keyword">SET</span> DB_RECYCLE_CACHE_SIZE <span class="operator">=</span> <span class="operator">&lt;</span>size<span class="operator">&gt;</span> [G<span class="operator">|</span>M<span class="operator">|</span>K];</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><code>DB_2K_CACHE_SIZE</code>、<code>DB_4K_CACHE_SIZE</code>、<code>DB_8K_CACHE_SIZE</code>、<code>DB_16K_CACHE_SIZE</code>、<code>DB_32K_CACHE_SIZE</code>：这些参数用于设置不同大小数据块的缓冲区大小。您可以根据不同大小数据块的访问模式来调整相应缓冲区的大小。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">ALTER</span> <span class="keyword">SYSTEM</span> <span class="keyword">SET</span> DB_2K_CACHE_SIZE <span class="operator">=</span> <span class="operator">&lt;</span>size<span class="operator">&gt;</span> [G<span class="operator">|</span>M<span class="operator">|</span>K];</span><br><span class="line"><span class="keyword">ALTER</span> <span class="keyword">SYSTEM</span> <span class="keyword">SET</span> DB_4K_CACHE_SIZE <span class="operator">=</span> <span class="operator">&lt;</span>size<span class="operator">&gt;</span> [G<span class="operator">|</span>M<span class="operator">|</span>K];</span><br><span class="line"><span class="keyword">ALTER</span> <span class="keyword">SYSTEM</span> <span class="keyword">SET</span> DB_8K_CACHE_SIZE <span class="operator">=</span> <span class="operator">&lt;</span>size<span class="operator">&gt;</span> [G<span class="operator">|</span>M<span class="operator">|</span>K];</span><br><span class="line"><span class="keyword">ALTER</span> <span class="keyword">SYSTEM</span> <span class="keyword">SET</span> DB_16K_CACHE_SIZE <span class="operator">=</span> <span class="operator">&lt;</span>size<span class="operator">&gt;</span> [G<span class="operator">|</span>M<span class="operator">|</span>K];</span><br><span class="line"><span class="keyword">ALTER</span> <span class="keyword">SYSTEM</span> <span class="keyword">SET</span> DB_32K_CACHE_SIZE <span class="operator">=</span> <span class="operator">&lt;</span>size<span class="operator">&gt;</span> [G<span class="operator">|</span>M<span class="operator">|</span>K];</span><br></pre></td></tr></table></figure></li>
+</ul>
+<p>注意：在修改参数之前，请确保您对数据库的工作负载和访问模式有一定的了解，并根据实际需求进行调整。</p>
+</li>
+<li><p>重新启动数据库实例：修改缓冲区算法策略后，您需要重新启动数据库实例以使更改生效。</p>
+</li>
+</ol>
+<p>请注意，在修改数据库参数之前，请确保您具备适当的权限，并在生产环境中进行谨慎测试和评估。修改缓冲区算法策略可能会对数据库性能产生影响，因此建议在进行任何更改之前备份数据库并进行充分测试。</p>
+<h4 id="什么是共享池？"><a href="#什么是共享池？" class="headerlink" title="什么是共享池？"></a>什么是共享池？</h4><p>共享池（Shared Pool）是Oracle数据库中的一个重要组件，用于缓存和共享SQL语句的执行计划、共享游标、共享SQL区域和共享PL&#x2F;SQL代码等重要结构。它位于数据库系统全局区域（System Global Area，SGA）内，用于提高数据库的性能和资源利用率。</p>
+<p>共享池主要包括以下几个重要的组件：</p>
+<ol>
+<li><p>SQL区域（SQL Area）：共享池中的SQL区域用于缓存SQL语句的解析信息、执行计划和运行时统计信息。当应用程序执行一个SQL语句时，数据库会首先检查共享池中是否存在相同的SQL语句。如果存在，数据库可以重用已经解析过的SQL语句，从而避免重复的解析和优化过程，提高执行效率。</p>
+</li>
+<li><p>共享游标（Shared Cursor）：共享池还用于缓存共享游标，这些游标是数据库为SQL语句分配的内部结构，用于执行和管理SQL语句的执行计划和结果集。共享游标的缓存可以减少游标的重复分配和释放操作，提高数据库的性能和资源利用率。</p>
+</li>
+<li><p>PL&#x2F;SQL代码区域（PL&#x2F;SQL Code Area）：共享池中还包括一个专门用于缓存共享PL&#x2F;SQL代码的区域。PL&#x2F;SQL代码区域用于存储经常使用的PL&#x2F;SQL存储过程、函数和包等对象的编译代码，以便在需要时可以重用这些编译代码，提高执行效率。</p>
+</li>
+</ol>
+<p>通过共享池，Oracle数据库可以重用已经解析过的SQL语句、共享游标和PL&#x2F;SQL代码，从而减少系统资源的消耗，提高数据库的性能和响应速度。共享池的大小可以通过调整相关的数据库参数来进行配置，以满足具体应用的需求。</p>
+<p>七宝言：共享池里面最关心的应该是就是执行计划的内容了，之后再单独写一篇关于执行计划和对应优化的内容。</p>
+<h4 id="什么是重做日志缓冲区？"><a href="#什么是重做日志缓冲区？" class="headerlink" title="什么是重做日志缓冲区？"></a>什么是重做日志缓冲区？</h4><p>重做日志缓冲区（Redo Log Buffer）是数据库管理系统中的一个重要组件，用于记录事务对数据库所做的更改操作。下面是对重做日志缓冲区的介绍：</p>
+<ol>
+<li><p>定义：<br>重做日志缓冲区是数据库管理系统中的一块内存区域，用于临时存储事务对数据库所做的更改操作。当事务提交或数据库发生故障时，重做日志缓冲区中的数据将被写入到磁盘上的重做日志文件中，以确保数据的持久性和一致性。</p>
+</li>
+<li><p>功能：<br>重做日志缓冲区的主要功能是记录事务对数据库的更改操作，包括插入、更新和删除等操作。它的作用是将这些更改操作以日志的形式保存下来，以便在数据库发生故障时进行恢复。通过将更改操作记录到重做日志缓冲区中，可以避免频繁地写入磁盘，提高数据库的性能。</p>
+</li>
+<li><p>写入策略：<br>重做日志缓冲区的数据在内存中进行写入，并不直接写入磁盘。数据库管理系统会根据一定的策略将重做日志缓冲区中的数据写入到磁盘上的重做日志文件中。常见的写入策略包括：</p>
+<ul>
+<li>基于事务提交：当事务提交时，相关的重做日志缓冲区数据将被写入磁盘。</li>
+<li>基于日志刷新：当重做日志缓冲区满或数据库系统空闲时，将缓冲区中的数据写入磁盘。</li>
+<li>基于时间间隔：定期将重做日志缓冲区中的数据写入磁盘，无论事务是否提交。</li>
+</ul>
+</li>
+<li><p>重做日志文件：<br>重做日志缓冲区中的数据在写入磁盘时，会被追加到重做日志文件中。重做日志文件记录了数据库中所有事务的更改操作，以及其发生的顺序。这些日志文件是循环使用的，当一个日志文件写满后，会继续写入下一个日志文件。数据库管理系统会定期将已经提交的事务的日志文件进行归档，以释放磁盘空间。</p>
+</li>
+</ol>
+<p>总结：<br>重做日志缓冲区是数据库管理系统中的一个关键组件，用于记录事务对数据库的更改操作。它的作用是确保数据的持久性和一致性，并在数据库发生故障时进行恢复。通过将更改操作记录到重做日志缓冲区中，可以提高数据库的性能并减少频繁的磁盘写入操作。</p>
+<h4 id="重做日志文件的有效期"><a href="#重做日志文件的有效期" class="headerlink" title="重做日志文件的有效期"></a>重做日志文件的有效期</h4><p>在Oracle数据库中，重做日志文件的有效期是相对较短的，通常是几天到几周的时间范围。有效期的具体长度取决于多个因素，包括数据库的活动水平、重做日志文件的大小和数量、数据库的恢复策略以及数据库管理员的配置设置。</p>
+<p>Oracle数据库使用了一种称为”重做日志切换”（Redo Log Switch）的机制来管理重做日志文件的切换和重用。当当前组的重做日志文件被写满或数据库需要切换到下一个组时，数据库会自动进行重做日志切换。这意味着旧的重做日志文件将不再被使用，并可以被重复利用。</p>
+<p>数据库管理员可以配置数据库的日志切换频率和重做日志文件的大小，以满足数据库的需求。通常情况下，为了保证数据库的恢复能力和故障恢复能力，数据库管理员会确保有足够的重做日志文件可供使用，并设置适当的重做日志文件大小和数量。</p>
+<p>需要注意的是，如果数据库的活动水平很高或者进行了大量的事务更改操作，重做日志文件可能会更快地被写满和切换。相反，如果数据库的活动水平较低，重做日志文件可能会保持较长时间的有效期。</p>
+<p>总结来说，重做日志文件的有效期在Oracle数据库中通常是几天到几周的范围，具体取决于数据库的活动水平和管理员的配置设置。数据库管理员需要根据实际情况进行适当的配置和管理，以确保数据库的恢复能力和故障恢复能力。</p>
+<h4 id="如何设置重做日志文件大小和数量。"><a href="#如何设置重做日志文件大小和数量。" class="headerlink" title="如何设置重做日志文件大小和数量。"></a>如何设置重做日志文件大小和数量。</h4><p>在Oracle数据库中，可以通过以下步骤来设置重做日志文件的大小和数量：</p>
+<ol>
+<li><p>查询当前的重做日志配置：<br>使用以下SQL语句查询当前的重做日志配置信息：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">GROUP</span>#, THREAD#, SEQUENCE#, ARCHIVED, STATUS, <span class="keyword">MEMBER</span>, BYTES<span class="operator">/</span><span class="number">1024</span><span class="operator">/</span><span class="number">1024</span> <span class="keyword">AS</span> SIZE_MB</span><br><span class="line"><span class="keyword">FROM</span> V$LOG;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>确定重做日志文件的大小：<br>根据数据库的需求和性能考虑，确定每个重做日志文件的大小。一般建议将重做日志文件大小设置为几百兆字节（MB）到几千兆字节（GB）之间。</p>
+</li>
+<li><p>确定重做日志文件的数量：<br>根据数据库的活动水平和性能需求，确定需要配置的重做日志文件的数量。一般建议至少配置两到三个重做日志组，每个组包含多个重做日志文件。</p>
+</li>
+<li><p>创建新的重做日志组：<br>使用以下SQL语句创建新的重做日志组：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">ALTER</span> DATABASE <span class="keyword">ADD</span> LOGFILE <span class="keyword">GROUP</span> <span class="operator">&lt;</span>group_number<span class="operator">&gt;</span> (<span class="string">&#x27;&lt;log_file_1&gt;&#x27;</span>, <span class="string">&#x27;&lt;log_file_2&gt;&#x27;</span>, <span class="string">&#x27;&lt;log_file_3&gt;&#x27;</span>) SIZE <span class="operator">&lt;</span>size<span class="operator">&gt;</span> [G<span class="operator">|</span>M];</span><br></pre></td></tr></table></figure>
+
+<p>其中，<code>&lt;group_number&gt;</code>是组的编号，<code>&lt;log_file_1&gt;</code>, <code>&lt;log_file_2&gt;</code>, <code>&lt;log_file_3&gt;</code>是重做日志文件的路径和名称，<code>&lt;size&gt;</code>是重做日志文件的大小。</p>
+</li>
+<li><p>激活新的重做日志组：<br>使用以下SQL语句激活新的重做日志组：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">ALTER</span> DATABASE SWITCH LOGFILE;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>验证新的重做日志配置：<br>使用步骤1中的SQL语句再次查询重做日志配置，确保新的重做日志组已经生效。</p>
+</li>
+</ol>
+<p>需要注意的是，对于正在运行的生产数据库，更改重做日志配置可能需要谨慎操作，并且可能需要在数据库维护窗口或离线期间进行。在进行任何更改之前，建议备份数据库并参考Oracle官方文档以获取更详细的指导和最佳实践。</p>
+<p>以上是一般设置重做日志文件大小和数量的步骤，具体的配置和调整应根据实际情况和需求进行。</p>
+<h4 id="如果备用数据库需要定时同步主数据库的数据，是否可以使用重做日志文件来实现？"><a href="#如果备用数据库需要定时同步主数据库的数据，是否可以使用重做日志文件来实现？" class="headerlink" title="如果备用数据库需要定时同步主数据库的数据，是否可以使用重做日志文件来实现？"></a>如果备用数据库需要定时同步主数据库的数据，是否可以使用重做日志文件来实现？</h4><p>是的，备用数据库可以使用重做日志文件来实现与主数据库的数据同步。这种方法被称为基于重做日志的数据复制或基于日志的数据复制。</p>
+<p>基于重做日志的数据复制涉及以下步骤：</p>
+<ol>
+<li><p>主数据库记录重做日志：<br>在主数据库上，所有的事务更改操作都会被记录到重做日志文件中。这些日志记录包含了对数据库的修改操作的详细信息。</p>
+</li>
+<li><p>传输重做日志：<br>备用数据库通过某种方式获取主数据库的重做日志文件。这可以通过网络传输、共享存储或其他数据传输机制来完成。</p>
+</li>
+<li><p>应用重做日志：<br>备用数据库将接收到的重做日志文件应用到自身的数据库中。这个过程涉及将重做日志中的事务更改操作重新应用到备用数据库中，以使备用数据库与主数据库保持一致。</p>
+</li>
+<li><p>同步延迟：<br>由于网络传输和应用重做日志的过程需要一定的时间，备用数据库的数据可能会有一定的同步延迟。这意味着备用数据库中的数据可能不是实时的，而是稍微滞后于主数据库。</p>
+</li>
+</ol>
+<p>基于重做日志的数据复制提供了较高的数据一致性和完整性，因为它记录了主数据库上发生的所有事务更改操作，并将其应用到备用数据库中。在主数据库发生故障或不可用时，备用数据库可以接管并继续提供服务。</p>
+<p>需要注意的是，实施基于重做日志的数据复制需要考虑网络带宽、传输安全性、日志应用的性能等因素。此外，备用数据库的配置和设置也需要与主数据库保持一致，以确保数据的一致性和可用性。</p>
+<p>总结来说，基于重做日志的数据复制是一种常见的方法，可用于实现备用数据库与主数据库之间的数据同步。这种方法可以提供较高的数据一致性和完整性，并在主数据库故障时提供故障转移和容灾能力。</p>
+<h4 id="什么是大池？"><a href="#什么是大池？" class="headerlink" title="什么是大池？"></a>什么是大池？</h4><p>大池是SGA的一个可选组件，它提供了一块专门用于支持特定功能和操作的内存区域。大池的主要作用是提供额外的共享内存，用于支持一些需要较大内存缓冲区的功能，如备份和恢复、并行查询、共享服务器进程（Shared Server Processes）等。</p>
+<p>大池的主要特点和功能包括：</p>
+<ol>
+<li><p>备份和恢复：大池用于存储备份和恢复操作期间使用的内存结构，如备份缓冲区（Backup Buffer）和恢复管理区（Recovery Manager Area）。这些结构可以提高备份和恢复的性能和效率。</p>
+</li>
+<li><p>并行查询：在执行并行查询时，大池用于存储并行执行操作所需的内存结构，如并行执行消息缓冲区（Parallel Execution Message Buffers）和并行执行服务器（Parallel Execution Servers）。这些结构可以提高并行查询的效率和扩展性。</p>
+</li>
+<li><p>共享服务器进程：在使用共享服务器架构（Shared Server Architecture）时，大池用于存储共享服务器进程所需的内存结构，如共享池（Shared Pool）和会话信息（Session Information）。这些结构可以提高共享服务器的性能和资源利用率。</p>
+</li>
+</ol>
+<p>为了启用大池，需要在数据库的初始化参数文件（init.ora或spfile）中设置相关的参数，如<code>LARGE_POOL_SIZE</code>。通过适当配置大池的大小，可以根据数据库的需求提供足够的内存来支持备份和恢复、并行查询和共享服务器等功能。</p>
+<p>需要注意的是，大池的大小应根据实际需求和数据库的工作负载进行调整。如果数据库不需要备份和恢复、并行查询或共享服务器功能，或者已经使用其他内存区域满足了这些需求，那么大池可以不进行配置或设置为较小的值。</p>
+<p>总结来说，大池是Oracle数据库中SGA的一个可选组件，用于提供额外的共享内存来支持备份和恢复、并行查询和共享服务器等功能。通过适当配置大池的大小，可以根据数据库的需求提供足够的内存支持这些功能，并提高数据库的性能和效率。</p>
+<h4 id="什么是JAVA池？"><a href="#什么是JAVA池？" class="headerlink" title="什么是JAVA池？"></a>什么是JAVA池？</h4><p>Java池是SGA中的一个可选组件，用于存储和管理Java对象和Java执行环境所需的内存。它主要用于支持Oracle数据库中的Java相关功能，如Java存储过程、Java触发器、Java类和Java应用程序等。</p>
+<p>Java池的主要作用是提供一个专门的内存区域来存放Java对象的定义和实例。它包括以下两个主要部分：</p>
+<ol>
+<li><p>Java对象池（Java Object Pool）：Java对象池用于存储已加载的Java类的定义和实例。当数据库中的Java程序被调用时，相关的Java类和对象将被加载到Java对象池中，并在需要时进行重用。这样可以提高Java程序的性能和执行效率。</p>
+</li>
+<li><p>Java执行环境（Java Execution Environment）：Java执行环境是Java池中的另一个重要组成部分，用于支持Java程序的执行和运行。它包括Java虚拟机（Java Virtual Machine，JVM）和与Java相关的运行时环境。Java执行环境提供了必要的资源和功能，以便在数据库中执行Java程序。</p>
+</li>
+</ol>
+<p>通过适当配置Java池的大小，可以根据数据库的需求提供足够的内存来支持Java相关功能。可以使用初始化参数文件（init.ora或spfile）中的相关参数来设置Java池的大小，如<code>JAVA_POOL_SIZE</code>。</p>
+<p>需要注意的是，Java池的大小应根据实际需求和数据库中Java程序的使用情况进行调整。如果数据库中没有使用Java相关功能，或者Java程序的使用较少，那么可以不进行配置或设置较小的Java池大小。</p>
+<p>总结来说，Java池是Oracle数据库中SGA的一个可选组件，用于存储和管理Java对象和Java执行环境所需的内存。通过适当配置Java池的大小，可以根据数据库的需求提供足够的内存支持Java相关功能，并提高数据库的性能和效率。</p>
+</article><div class="post-tools" id="post-tools"><div class="post-tools-left"><div class="share-link mobile"><div class="share-qrcode"><div class="share-button" title="使用手机访问这篇文章"><i class="anzhiyufont anzhiyu-icon-qrcode"></i></div><div class="share-main"><div class="share-main-all"><div id="qrcode" title="http://blog.qibao.icu/2023/08/02/oracledatabase-sga/"></div><div class="reward-dec">使用手机访问这篇文章</div></div></div></div></div><div class="share-link weibo"><a class="share-button" target="_blank" href="https://service.weibo.com/share/share.php?title=undefined&amp;url=http://blog.qibao.icu/2023/08/02/oracledatabase-sga/&amp;pic=undefined" rel="external nofollow noreferrer noopener"><i class="anzhiyufont anzhiyu-icon-weibo"></i></a></div><div class="share-link copyurl"><div class="share-button" id="post-share-url" title="复制链接" onclick="rm.copyPageUrl()"><i class="anzhiyufont anzhiyu-icon-link"></i></div></div></div><div class="post-tools-right"><div class="tag_share"><div class="post-meta__box"><div class="post-meta__box__tag-list"><a class="post-meta__box__tags" href="/tags/Oracle/"><span class="tags-punctuation"> <i class="anzhiyufont anzhiyu-icon-tag"></i></span>Oracle<span class="tagsPageCount">5</span></a><a class="post-meta__box__tags" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/"><span class="tags-punctuation"> <i class="anzhiyufont anzhiyu-icon-tag"></i></span>数据库<span class="tagsPageCount">3</span></a></div></div></div></div></div><div class="post-copyright"><i class="anzhiyufont anzhiyu-icon-copyright"></i><div class="post-copyright__author"><a class="post-copyright__original" title="该文章为原创文章，注意版权协议" href="http://blog.qibao.icu/2023/08/02/oracledatabase-sga/">原创</a><a class="post-copyright-title"><span>Oracle数据库的缓存管理机制</span></a></div><div class="post-copyright-info-box"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"></span><a class="link" href="http://blog.qibao.icu">Qibao</a></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a class="link" href="http://blog.qibao.icu/2023/08/02/oracledatabase-sga/">http://blog.qibao.icu/2023/08/02/oracledatabase-sga/</a></span><span class="copy-button" onclick="rm.copyPageUrl()"><i class="anzhiyufont anzhiyu-icon-copy"></i></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://blog.qibao.icu" target="_blank">七宝的小窝</a>！</span></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2023/08/02/express01/"><img class="prev-cover" src="https://resources.qibao.icu/img/deemo/booksprites_10.webp" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">Blog的二次开发-上传图片</div></div></a></div><div class="next-post pull-right"><a href="/2023/09/13/SQL/"><img class="next-cover" src="https://resources.qibao.icu/img/deemo/booksprites_12.webp" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">PL/SQL编程详解</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="anzhiyufont anzhiyu-icon-thumbs-up fa-fw" style="font-size: 1.5rem; margin-right: 4px"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2023/06/28/oracle_pivot/" title="Oracle数据表的透视函数Pivot（行转列）"><img class="cover" src="https://resources.qibao.icu/img/deemo/AI02ienakunaru.webp" alt="cover"><div class="content is-center"><div class="date"><i class="anzhiyufont anzhiyu-icon-calendar-days fa-fw"></i> 2023-06-28</div><div class="title">Oracle数据表的透视函数Pivot（行转列）</div></div></a></div><div><a href="/2023/09/13/SQL/" title="PL&#x2F;SQL编程详解"><img class="cover" src="https://resources.qibao.icu/img/deemo/booksprites_12.webp" alt="cover"><div class="content is-center"><div class="date"><i class="anzhiyufont anzhiyu-icon-calendar-days fa-fw"></i> 2023-09-13</div><div class="title">PL&#x2F;SQL编程详解</div></div></a></div><div><a href="/2023/07/12/oracle-tns/" title="Oracle数据库中的tnsnames.ora文件及网络配置"><img class="cover" src="https://resources.qibao.icu/img/deemo/aioi_booksprites.webp" alt="cover"><div class="content is-center"><div class="date"><i class="anzhiyufont anzhiyu-icon-calendar-days fa-fw"></i> 2023-07-12</div><div class="title">Oracle数据库中的tnsnames.ora文件及网络配置</div></div></a></div><div><a href="/2023/07/11/toad4oracle/" title="Toad for Oracle的安装记录。"><img class="cover" src="https://resources.qibao.icu/img/deemo/AI05newworld.webp" alt="cover"><div class="content is-center"><div class="date"><i class="anzhiyufont anzhiyu-icon-calendar-days fa-fw"></i> 2023-07-11</div><div class="title">Toad for Oracle的安装记录。</div></div></a></div></div></div><hr/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="anzhiyufont anzhiyu-icon-comments"></i><span> 评论</span></div><div class="comment-randomInfo"><a onclick="anzhiyu.addRandomCommentInfo()" href="javascript:void(0)">匿名评论</a></div><div class="comment-tips" id="comment-tips"><span>你无需删除空行，直接评论以获取最佳展示效果</span></div></div><div class="comment-wrap"><div><div id="twikoo-wrap"></div></div></div><div class="comment-barrage"></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="author-info-top"> <div class="card-info-avatar"><a class="avatar-img" href="/about"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://resources.qibao.icu/img/blog/touxiang.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></a></div></div><div class="author-info__sayhi" id="author-info__sayhi"></div><h1 class="author-info__name">Qibao</h1><div class="author-info__description"><div style="line-height:1.38;margin:0.6rem 0;text-align:justify;color:rgba(255, 255, 255, 0.8);">这有关于<b style="color:#fff">游戏、生活、开发</b>相关的记录和吐槽，还有<b style="color:#fff">电视</b>和<b style="color:#fff">动画</b>的分享。</div><div style="line-height:1.38;margin:0.6rem 0;text-align:justify;color:rgba(255, 255, 255, 0.8);">相信你可以在这里找到对你有用的<b style="color:#fff">知识</b>和<b style="color:#fff">感悟</b>。</div></div><div class="banner-button-group"><a class="banner-button" onclick="pjax.loadUrl(&quot;/about/&quot;)"><span class="banner-button-text">了解更多</span><i class="anzhiyufont anzhiyu-icon-arrow-circle-right" style="font-size: 1.5rem"></i></a></div><div class="card-info-social-icons is-center"><a class="social-icon faa-parent animated-hover" href="https://github.com/xiaohuliqibao" target="_blank" title="Github"><i class="anzhiyufont anzhiyu-icon-github"></i></a><a class="social-icon faa-parent animated-hover" href="/xiaohuliqibao@gmail.com" target="_blank" title="Email"><i class="anzhiyufont anzhiyu-icon-envelope"></i></a><a class="social-icon faa-parent animated-hover" href="tencent://Message/?Uin=2213487614&amp;amp;websiteName=local.edu.com:8888=&amp;amp;Menu=yes" target="_blank" title="QQ"><i class="anzhiyufont anzhiyu-icon-qq"></i></a></div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="anzhiyufont anzhiyu-icon-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#Oracle%E7%9A%84%E7%BC%93%E5%AD%98%E7%AE%A1%E7%90%86%E6%9C%BA%E5%88%B6"><span class="toc-number">1.</span> <span class="toc-text">Oracle的缓存管理机制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFSGA"><span class="toc-number">2.</span> <span class="toc-text">什么是SGA</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E6%95%B0%E6%8D%AE%E7%BC%93%E5%86%B2%E5%8C%BA"><span class="toc-number">2.1.</span> <span class="toc-text">什么是数据缓冲区</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E7%BC%93%E5%86%B2%E5%8C%BA%E7%9A%84%E6%95%B0%E6%8D%AE%E6%98%AF%E5%A6%82%E4%BD%95%E6%9B%B4%E6%9B%BF%E7%9A%84%EF%BC%9F"><span class="toc-number">2.2.</span> <span class="toc-text">数据缓冲区的数据是如何更替的？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#ARC%E8%87%AA%E9%80%82%E5%BA%94%E7%BC%93%E5%AD%98%E4%BA%A4%E6%9B%BF%E7%AE%97%E6%B3%95"><span class="toc-number">2.3.</span> <span class="toc-text">ARC自适应缓存交替算法</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%85%B6%E4%BB%96%E6%9B%B4%E6%9B%BF%E7%AE%97%E6%B3%95"><span class="toc-number">2.4.</span> <span class="toc-text">其他更替算法</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E4%BF%AE%E6%94%B9%E6%95%B0%E6%8D%AE%E7%BC%93%E5%86%B2%E5%8C%BA%E7%9A%84%E7%AE%97%E6%B3%95%E7%AD%96%E7%95%A5%EF%BC%9F"><span class="toc-number">2.5.</span> <span class="toc-text">如何修改数据缓冲区的算法策略？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E5%85%B1%E4%BA%AB%E6%B1%A0%EF%BC%9F"><span class="toc-number">2.6.</span> <span class="toc-text">什么是共享池？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E9%87%8D%E5%81%9A%E6%97%A5%E5%BF%97%E7%BC%93%E5%86%B2%E5%8C%BA%EF%BC%9F"><span class="toc-number">2.7.</span> <span class="toc-text">什么是重做日志缓冲区？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%87%8D%E5%81%9A%E6%97%A5%E5%BF%97%E6%96%87%E4%BB%B6%E7%9A%84%E6%9C%89%E6%95%88%E6%9C%9F"><span class="toc-number">2.8.</span> <span class="toc-text">重做日志文件的有效期</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E8%AE%BE%E7%BD%AE%E9%87%8D%E5%81%9A%E6%97%A5%E5%BF%97%E6%96%87%E4%BB%B6%E5%A4%A7%E5%B0%8F%E5%92%8C%E6%95%B0%E9%87%8F%E3%80%82"><span class="toc-number">2.9.</span> <span class="toc-text">如何设置重做日志文件大小和数量。</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%A6%82%E6%9E%9C%E5%A4%87%E7%94%A8%E6%95%B0%E6%8D%AE%E5%BA%93%E9%9C%80%E8%A6%81%E5%AE%9A%E6%97%B6%E5%90%8C%E6%AD%A5%E4%B8%BB%E6%95%B0%E6%8D%AE%E5%BA%93%E7%9A%84%E6%95%B0%E6%8D%AE%EF%BC%8C%E6%98%AF%E5%90%A6%E5%8F%AF%E4%BB%A5%E4%BD%BF%E7%94%A8%E9%87%8D%E5%81%9A%E6%97%A5%E5%BF%97%E6%96%87%E4%BB%B6%E6%9D%A5%E5%AE%9E%E7%8E%B0%EF%BC%9F"><span class="toc-number">2.10.</span> <span class="toc-text">如果备用数据库需要定时同步主数据库的数据，是否可以使用重做日志文件来实现？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E5%A4%A7%E6%B1%A0%EF%BC%9F"><span class="toc-number">2.11.</span> <span class="toc-text">什么是大池？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFJAVA%E6%B1%A0%EF%BC%9F"><span class="toc-number">2.12.</span> <span class="toc-text">什么是JAVA池？</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="anzhiyufont anzhiyu-icon-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2023/12/12/centos_yum/" title="CentOS8的基本配置"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://resources.qibao.icu/img/deemo/booksprites_8.webp" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="CentOS8的基本配置"/></a><div class="content"><a class="title" href="/2023/12/12/centos_yum/" title="CentOS8的基本配置">CentOS8的基本配置</a><time datetime="2023-12-12T09:15:29.161Z" title="发表于 2023-12-12 17:15:29">2023-12-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/11/16/geojson/" title="geojson文件简介和基本示例"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://resources.qibao.icu/img/deemo/booksprites_7.webp" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="geojson文件简介和基本示例"/></a><div class="content"><a class="title" href="/2023/11/16/geojson/" title="geojson文件简介和基本示例">geojson文件简介和基本示例</a><time datetime="2023-11-16T02:12:30.267Z" title="发表于 2023-11-16 10:12:30">2023-11-16</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/11/14/hexo_post_order/" title="Hexo文章排序和自定义排序"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://resources.qibao.icu/img/deemo/booksprites_6.webp" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Hexo文章排序和自定义排序"/></a><div class="content"><a class="title" href="/2023/11/14/hexo_post_order/" title="Hexo文章排序和自定义排序">Hexo文章排序和自定义排序</a><time datetime="2023-11-14T06:28:32.377Z" title="发表于 2023-11-14 14:28:32">2023-11-14</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/09/27/fr1103/" title="帆软交付认证模拟题FR1103"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://resources.qibao.icu/img/deemo/booksprites_4.webp" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="帆软交付认证模拟题FR1103"/></a><div class="content"><a class="title" href="/2023/09/27/fr1103/" title="帆软交付认证模拟题FR1103">帆软交付认证模拟题FR1103</a><time datetime="2023-09-27T07:03:37.953Z" title="发表于 2023-09-27 15:03:37">2023-09-27</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/09/27/fr1104/" title="帆软交付认证模拟题FR1104"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://resources.qibao.icu/img/deemo/booksprites_5.webp" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="帆软交付认证模拟题FR1104"/></a><div class="content"><a class="title" href="/2023/09/27/fr1104/" title="帆软交付认证模拟题FR1104">帆软交付认证模拟题FR1104</a><time datetime="2023-09-27T07:03:37.953Z" title="发表于 2023-09-27 15:03:37">2023-09-27</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div id="footer_deal"><a class="deal_link" href="mailto:xiaohuliqibao@gmail.com" title="email"><i class="anzhiyufont anzhiyu-icon-envelope"></i></a><img class="footer_mini_logo" title="返回顶部" onclick="anzhiyu.scrollToDest(0, 500)" src="https://resources.qibao.icu/img/blog/touxiang.jpg" size="50px"/><a class="deal_link" target="_blank" rel="noopener" href="https://github.com/xiaohuliqibao" title="Github"><i class="anzhiyufont anzhiyu-icon-github"></i></a></div><div class="copyright">&copy;2023 By Qibao</div><div id="workboard"><img class="workSituationImg boardsign" src="https://resources.qibao.icu/img/blog/working.svg" alt="摸鱼的悠闲生活~" title="摸鱼的悠闲生活~"/><div id="runtimeTextTip"></div></div><p id="ghbdages"><a class="github-badge" target="_blank" href="https://hexo.io/" style="margin-inline:5px" data-title="博客框架为Hexo_v5.4.0" title="博客框架为Hexo_v5.4.0"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://npm.elemecdn.com/anzhiyu-blog@2.1.5/img/badge/Frame-Hexo.svg" alt="博客框架为Hexo_v5.4.0"/></a><a class="github-badge" target="_blank" href="https://blog.anheyu.com/" style="margin-inline:5px" data-title="本站使用AnZhiYu主题" title="本站使用AnZhiYu主题"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://npm.elemecdn.com/anzhiyu-theme-static@1.0.9/img/Theme-AnZhiYu-2E67D3.svg" alt="本站使用AnZhiYu主题"/></a><a class="github-badge" target="_blank" href="https://resources.qibao.icu/img/blog/qibaoyun.svg" style="margin-inline:5px" data-title="本站使用七宝云为静态资源提供CDN加速" title="本站使用七宝云为静态资源提供CDN加速"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://resources.qibao.icu/img/blog/qibaoyun.svg" alt="本站使用七宝云为静态资源提供CDN加速"/></a><a class="github-badge" target="_blank" href="http://creativecommons.org/licenses/by-nc-sa/4.0/" style="margin-inline:5px" data-title="本站采用知识共享署名-非商业性使用-相同方式共享4.0国际许可协议进行许可" title="本站采用知识共享署名-非商业性使用-相同方式共享4.0国际许可协议进行许可"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://npm.elemecdn.com/anzhiyu-blog@2.2.0/img/badge/Copyright-BY-NC-SA.svg" alt="本站采用知识共享署名-非商业性使用-相同方式共享4.0国际许可协议进行许可"/></a></p></div></footer><div id="quit-box" onclick="anzhiyu.removeRewardMask()" style="display: none"></div></div><div id="loading-box" onclick="document.getElementById(&quot;loading-box&quot;).classList.add(&quot;loaded&quot;)"><div class="loading-bg"><img class="loading-img nolazyload" src="https://resources.qibao.icu/img/blog//touxiang.jpg"/><div class="loading-image-dot"></div><div id="loading-percentage">0%</div></div></div><script>const loadingPercentage = document.getElementById("loading-percentage");
+let loadingPercentageTimer = setInterval(function() {
+  var progressBar = document.querySelector(".pace-progress");
+  if (!progressBar) return
+  var currentValue = progressBar.getAttribute("data-progress-text");
+  if (currentValue !== loadingPercentage.textContent) {
+    loadingPercentage.textContent = currentValue;
+    if (currentValue === "100%") {
+      clearInterval(loadingPercentageTimer);
+    }
+  }
+}, 100);
+const preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+  }
+}
+window.addEventListener('load',()=> { preloader.endLoading() })
+
+if (true) {
+  document.addEventListener('pjax:send', () => { preloader.initLoading() })
+  document.addEventListener('pjax:complete', () => { preloader.endLoading() })
+}</script><link rel="stylesheet" href="https://npm.elemecdn.com/anzhiyu-theme-static@1.0.0/progress_bar/progress_bar.css"/><script async="async" src="https://npm.elemecdn.com/pace-js@1.2.4/pace.min.js" data-pace-options="{ &quot;restartOnRequestAfter&quot;:false,&quot;eventLag&quot;:false}"></script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://resources.qibao.icu/img/blog/touxiang.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/" title="archive"><div class="headline">文章</div><div class="length-num">34</div></a><a href="/tags/" title="tag"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/" title="category"><div class="headline">分类</div><div class="length-num">3</div></a></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page faa-parent animated-hover" href="javascript:void(0);"><span> 文章</span></a><ul class="menus_item_child" style="left:-31px;"><li><a class="site-page child faa-parent animated-hover" href="/categories/"><i class="anzhiyufont anzhiyu-icon-shapes faa-tada" style="font-size: 0.9em;"></i><span> 分类</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/tags/"><i class="anzhiyufont anzhiyu-icon-tags faa-tada" style="font-size: 0.9em;"></i><span> 标签</span></a></li></ul></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="javascript:void(0);"><span> 我的</span></a><ul class="menus_item_child" style="left:-31px;"><li><a class="site-page child faa-parent animated-hover" href="/music/?id=1237321347&amp;server=tencent"><i class="anzhiyufont anzhiyu-icon-music faa-tada" style="font-size: 0.9em;"></i><span> 音乐馆</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/album/"><i class="anzhiyufont anzhiyu-icon-images faa-tada" style="font-size: 0.9em;"></i><span> 相册集</span></a></li></ul></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="javascript:void(0);"><span> 关于</span></a><ul class="menus_item_child" style="left:-31px;"><li><a class="site-page child faa-parent animated-hover" href="/about/"><i class="anzhiyufont anzhiyu-icon-paper-plane faa-tada" style="font-size: 0.9em;"></i><span> 关于本人</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/essay/"><i class="anzhiyufont anzhiyu-icon-lightbulb faa-tada" style="font-size: 0.9em;"></i><span> 闲言碎语</span></a></li></ul></div></div></div></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="anzhiyufont anzhiyu-icon-book-open"></i></button><button id="translateLink" type="button" title="简繁转换">繁</button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="anzhiyufont anzhiyu-icon-circle-half-stroke"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="anzhiyufont anzhiyu-icon-arrows-left-right"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="anzhiyufont anzhiyu-icon-gear"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="anzhiyufont anzhiyu-icon-list-ul"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="anzhiyufont anzhiyu-icon-comments"></i></a><a id="switch_commentBarrage" href="javascript:anzhiyu.switchCommentBarrage();" title="开关弹幕"><i class="anzhiyufont anzhiyu-icon-danmu"></i></a><button id="center-console" type="button" title="中控台"><i class="anzhiyufont anzhiyu-icon-fish"></i></button><button id="go-up" type="button" title="回到顶部"><i class="anzhiyufont anzhiyu-icon-arrow-up"></i></button></div></div><div id="console"><div class="close-btn" onclick="anzhiyu.hideConsole()" href="javascript:void(0);"><i class="anzhiyufont anzhiyu-icon-circle-xmark" style="font-size: 35px;"></i></div><div class="console-card-group-reward"><ul class="reward-all console-card"><li class="reward-item"><a href="https://npm.elemecdn.com/anzhiyu-blog@1.1.6/img/post/common/qrcode-weichat.png" target="_blank"><img class="post-qr-code-img" alt="wechat" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://npm.elemecdn.com/anzhiyu-blog@1.1.6/img/post/common/qrcode-weichat.png"/></a><div class="post-qr-code-desc">wechat</div></li><li class="reward-item"><a href="https://npm.elemecdn.com/anzhiyu-blog@1.1.6/img/post/common/qrcode-alipay.png" target="_blank"><img class="post-qr-code-img" alt="alipay" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://npm.elemecdn.com/anzhiyu-blog@1.1.6/img/post/common/qrcode-alipay.png"/></a><div class="post-qr-code-desc">alipay</div></li></ul></div><div class="console-card-group"><div class="console-card-group-left"><div class="console-card" id="card-newest-comments" onclick="anzhiyu.hideConsole()"><div class="card-content"><div class="author-content-item-tips">互动</div><span class="author-content-item-title"> <span>最新评论</span></span></div><div class="aside-list"><span>正在加载中...</span></div></div></div><div class="console-card-group-right"><div class="console-card tags" onclick="anzhiyu.hideConsole()"><div class="card-content"><div class="author-content-item-tips">兴趣点</div><span class="author-content-item-title">寻找你感兴趣的领域</span><div class="card-tags"><div class="item-headline"></div><div class="card-tag-cloud"><a href="/tags/BI/" style="font-size: 1.15em; color: rgb(109, 183, 46)">BI<sup>1</sup></a><a href="/tags/Firewall/" style="font-size: 1.15em; color: rgb(0, 94, 162)">Firewall<sup>1</sup></a><a href="/tags/Hexo/" style="font-size: 1.2em; color: rgb(78, 48, 30)">Hexo<sup>2</sup></a><a href="/tags/Kotlin/" style="font-size: 1.45em; color: rgb(92, 131, 47)">Kotlin<sup>10</sup></a><a href="/tags/Linux/" style="font-size: 1.2em; color: rgb(113, 148, 54)">Linux<sup>2</sup></a><a href="/tags/MiraiBot/" style="font-size: 1.4em; color: rgb(22, 168, 26)">MiraiBot<sup>9</sup></a><a href="/tags/Oracle/" style="font-size: 1.35em; color: rgb(55, 194, 4)">Oracle<sup>5</sup></a><a href="/tags/PL-SQL/" style="font-size: 1.15em; color: rgb(168, 118, 56)">PL/SQL<sup>1</sup></a><a href="/tags/SQLite/" style="font-size: 1.15em; color: rgb(174, 138, 180)">SQLite<sup>1</sup></a><a href="/tags/Toad/" style="font-size: 1.15em; color: rgb(24, 40, 134)">Toad<sup>1</sup></a><a href="/tags/User/" style="font-size: 1.15em; color: rgb(129, 18, 133)">User<sup>1</sup></a><a href="/tags/Vite/" style="font-size: 1.15em; color: rgb(105, 24, 15)">Vite<sup>1</sup></a><a href="/tags/Vue/" style="font-size: 1.15em; color: rgb(87, 39, 129)">Vue<sup>1</sup></a><a href="/tags/centos/" style="font-size: 1.15em; color: rgb(4, 114, 112)">centos<sup>1</sup></a><a href="/tags/express/" style="font-size: 1.15em; color: rgb(60, 97, 100)">express<sup>1</sup></a><a href="/tags/geojson/" style="font-size: 1.15em; color: rgb(93, 114, 185)">geojson<sup>1</sup></a><a href="/tags/hexo/" style="font-size: 1.15em; color: rgb(121, 185, 23)">hexo<sup>1</sup></a><a href="/tags/kotlin/" style="font-size: 1.15em; color: rgb(141, 133, 42)">kotlin<sup>1</sup></a><a href="/tags/network/" style="font-size: 1.15em; color: rgb(38, 22, 89)">network<sup>1</sup></a><a href="/tags/nginx/" style="font-size: 1.2em; color: rgb(3, 158, 84)">nginx<sup>2</sup></a><a href="/tags/nodejs/" style="font-size: 1.15em; color: rgb(176, 197, 30)">nodejs<sup>1</sup></a><a href="/tags/python/" style="font-size: 1.15em; color: rgb(126, 109, 14)">python<sup>1</sup></a><a href="/tags/utf-8/" style="font-size: 1.15em; color: rgb(142, 63, 155)">utf-8<sup>1</sup></a><a href="/tags/vscode/" style="font-size: 1.15em; color: rgb(168, 174, 153)">vscode<sup>1</sup></a><a href="/tags/yum/" style="font-size: 1.15em; color: rgb(149, 59, 45)">yum<sup>1</sup></a><a href="/tags/%E4%B8%BB%E9%A2%98/" style="font-size: 1.2em; color: rgb(199, 159, 93)">主题<sup>2</sup></a><a href="/tags/%E5%9B%BE%E7%89%87%E5%A4%84%E7%90%86/" style="font-size: 1.15em; color: rgb(164, 99, 128)">图片处理<sup>1</sup></a><a href="/tags/%E5%9C%B0%E7%90%86%E4%BF%A1%E6%81%AF/" style="font-size: 1.15em; color: rgb(196, 137, 27)">地理信息<sup>1</sup></a><a href="/tags/%E5%B8%86%E8%BD%AF/" style="font-size: 1.35em; color: rgb(120, 169, 8)">帆软<sup>5</sup></a><a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 1.25em; color: rgb(171, 76, 102)">数据库<sup>3</sup></a><a href="/tags/%E8%AF%9D%E7%97%A8/" style="font-size: 1.15em; color: rgb(48, 147, 3)">话痨<sup>1</sup></a><a href="/tags/%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6/" style="font-size: 1.15em; color: rgb(49, 69, 94)">配置文件<sup>1</sup></a><a href="/tags/%E9%9A%8F%E4%BE%BF%E5%86%99%E5%86%99/" style="font-size: 1.15em; color: rgb(116, 155, 8)">随便写写<sup>1</sup></a><a href="/tags/%E9%A2%98%E7%9B%AE/" style="font-size: 1.3em; color: rgb(172, 48, 160)">题目<sup>4</sup></a></div></div><hr/></div></div><div class="console-card history" onclick="anzhiyu.hideConsole()"><div class="item-headline"><i class="anzhiyufont anzhiyu-icon-box-archiv"></i><span>文章</span></div><div class="card-archives"><div class="item-headline"><i class="anzhiyufont anzhiyu-icon-archive"></i><span>归档</span></div><ul class="card-archive-list"><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2023/12/"><span class="card-archive-list-date">十二月 2023</span><div class="card-archive-list-count-group"><span class="card-archive-list-count">1</span><span>篇</span></div></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2023/11/"><span class="card-archive-list-date">十一月 2023</span><div class="card-archive-list-count-group"><span class="card-archive-list-count">2</span><span>篇</span></div></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2023/09/"><span class="card-archive-list-date">九月 2023</span><div class="card-archive-list-count-group"><span class="card-archive-list-count">5</span><span>篇</span></div></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2023/08/"><span class="card-archive-list-date">八月 2023</span><div class="card-archive-list-count-group"><span class="card-archive-list-count">3</span><span>篇</span></div></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2023/07/"><span class="card-archive-list-date">七月 2023</span><div class="card-archive-list-count-group"><span class="card-archive-list-count">5</span><span>篇</span></div></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2023/06/"><span class="card-archive-list-date">六月 2023</span><div class="card-archive-list-count-group"><span class="card-archive-list-count">7</span><span>篇</span></div></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2023/05/"><span class="card-archive-list-date">五月 2023</span><div class="card-archive-list-count-group"><span class="card-archive-list-count">11</span><span>篇</span></div></a></li></ul></div><hr/></div></div></div><div class="button-group"><div class="console-btn-item"><a class="darkmode_switchbutton" onclick="rm.switchDarkMode()" title="显示模式切换" href="javascript:void(0);"><i class="anzhiyufont anzhiyu-icon-moon"></i></a></div><div class="console-btn-item" id="consoleHideAside" onclick="anzhiyu.hideAsideBtn()" title="边栏显示控制"><a class="asideSwitch"><i class="anzhiyufont anzhiyu-icon-arrows-left-right"></i></a></div><div class="console-btn-item on" id="consoleCommentBarrage" onclick="anzhiyu.switchCommentBarrage()" title="热评开关"><a class="commentBarrage"><i class="anzhiyufont anzhiyu-icon-message"></i></a></div><div class="console-btn-item" id="consoleMusic" onclick="anzhiyu.musicToggle()" title="音乐开关"><a class="music-switch"><i class="anzhiyufont anzhiyu-icon-music"></i></a></div></div><div class="console-mask" onclick="anzhiyu.hideConsole()" href="javascript:void(0);"></div></div><div id="algolia-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><button class="search-close-button"><i class="anzhiyufont anzhiyu-icon-xmark"></i></button></nav><div class="search-wrap"><div id="algolia-search-input"></div><hr/><div id="algolia-search-results"><div id="algolia-hits"></div><div id="algolia-pagination"></div><div id="algolia-info"><div class="algolia-stats"></div><div class="algolia-poweredBy"></div></div></div></div></div><div id="search-mask"></div></div><div id="rightMenu"><div class="rightMenu-group rightMenu-small"><div class="rightMenu-item" id="menu-backward"><i class="anzhiyufont anzhiyu-icon-arrow-left"></i></div><div class="rightMenu-item" id="menu-forward"><i class="anzhiyufont anzhiyu-icon-arrow-right"></i></div><div class="rightMenu-item" id="menu-refresh"><i class="anzhiyufont anzhiyu-icon-arrow-rotate-right" style="font-size: 1rem;"></i></div><div class="rightMenu-item" id="menu-top"><i class="anzhiyufont anzhiyu-icon-arrow-up"></i></div></div><div class="rightMenu-group rightMenu-line rightMenuPlugin"><div class="rightMenu-item" id="menu-copytext"><i class="anzhiyufont anzhiyu-icon-copy"></i><span>复制选中文本</span></div><div class="rightMenu-item" id="menu-pastetext"><i class="anzhiyufont anzhiyu-icon-paste"></i><span>粘贴文本</span></div><a class="rightMenu-item" id="menu-commenttext"><i class="anzhiyufont anzhiyu-icon-comment-medical"></i><span>引用到评论</span></a><div class="rightMenu-item" id="menu-newwindow"><i class="anzhiyufont anzhiyu-icon-window-restore"></i><span>新窗口打开</span></div><div class="rightMenu-item" id="menu-copylink"><i class="anzhiyufont anzhiyu-icon-link"></i><span>复制链接地址</span></div><div class="rightMenu-item" id="menu-copyimg"><i class="anzhiyufont anzhiyu-icon-images"></i><span>复制此图片</span></div><div class="rightMenu-item" id="menu-downloadimg"><i class="anzhiyufont anzhiyu-icon-download"></i><span>下载此图片</span></div><div class="rightMenu-item" id="menu-newwindowimg"><i class="anzhiyufont anzhiyu-icon-window-restore"></i><span>新窗口打开图片</span></div><div class="rightMenu-item" id="menu-search"><i class="anzhiyufont anzhiyu-icon-magnifying-glass"></i><span>站内搜索</span></div><div class="rightMenu-item" id="menu-searchBaidu"><i class="anzhiyufont anzhiyu-icon-magnifying-glass"></i><span>百度搜索</span></div><div class="rightMenu-item" id="menu-music-toggle"><i class="anzhiyufont anzhiyu-icon-play"></i><span>播放音乐</span></div><div class="rightMenu-item" id="menu-music-back"><i class="anzhiyufont anzhiyu-icon-backward"></i><span>切换到上一首</span></div><div class="rightMenu-item" id="menu-music-forward"><i class="anzhiyufont anzhiyu-icon-forward"></i><span>切换到下一首</span></div><div class="rightMenu-item" id="menu-music-playlist" onclick="window.open(&quot;https://y.qq.com/n/ryqq/playlist/8802438608&quot;, &quot;_blank&quot;);" style="display: none;"><i class="anzhiyufont anzhiyu-icon-radio"></i><span>查看所有歌曲</span></div><div class="rightMenu-item" id="menu-music-copyMusicName"><i class="anzhiyufont anzhiyu-icon-copy"></i><span>复制歌名</span></div></div><div class="rightMenu-group rightMenu-line rightMenuOther"><a class="rightMenu-item menu-link" id="menu-randomPost"><i class="anzhiyufont anzhiyu-icon-shuffle"></i><span>随便逛逛</span></a><a class="rightMenu-item menu-link" href="/categories/"><i class="anzhiyufont anzhiyu-icon-cube"></i><span>博客分类</span></a><a class="rightMenu-item menu-link" href="/tags/"><i class="anzhiyufont anzhiyu-icon-tags"></i><span>文章标签</span></a></div><div class="rightMenu-group rightMenu-line rightMenuOther"><a class="rightMenu-item" id="menu-copy" href="javascript:void(0);"><i class="anzhiyufont anzhiyu-icon-copy"></i><span>复制地址</span></a><a class="rightMenu-item" id="menu-commentBarrage" href="javascript:void(0);"><i class="anzhiyufont anzhiyu-icon-message"></i><span class="menu-commentBarrage-text">关闭热评</span></a><a class="rightMenu-item" id="menu-darkmode" href="javascript:void(0);"><i class="anzhiyufont anzhiyu-icon-circle-half-stroke"></i><span class="menu-darkmode-text">深色模式</span></a><a class="rightMenu-item" id="menu-translate" href="javascript:void(0);"><i class="anzhiyufont anzhiyu-icon-language"></i><span>轉為繁體</span></a></div></div><div id="rightmenu-mask"></div><div id="he-plugin-simple"></div><script>var WIDGET = {
+  "CONFIG": {
+    "modules": "0124",
+    "background": "2",
+    "tmpColor": "FFFFFF",
+    "tmpSize": "16",
+    "cityColor": "FFFFFF",
+    "citySize": "16",
+    "aqiColor": "E8D87B",
+    "aqiSize": "16",
+    "weatherIconSize": "24",
+    "alertIconSize": "18",
+    "padding": "10px 10px 10px 10px",
+    "shadow": "0",
+    "language": "auto",
+    "borderRadius": "20",
+    "fixed": "true",
+    "vertical": "top",
+    "horizontal": "left",
+    "left": "20",
+    "top": "7.1",
+    "key": "df245676fb434a0691ead1c63341cd94"
+  }
+}
+</script><link rel="stylesheet" href="https://widget.qweather.net/simple/static/css/he-simple.css?v=1.4.0"/><script src="https://widget.qweather.net/simple/static/js/he-simple.js?v=1.4.0"></script><div><script src="https://npm.elemecdn.com/hexo-theme-anzhiyu@1.1.8/source/js/utils.js"></script><script src="https://npm.elemecdn.com/hexo-theme-anzhiyu@1.1.8/source/js/main.js"></script><script src="https://npm.elemecdn.com/hexo-theme-anzhiyu@1.1.8/source/js/tw_cn.js"></script><script src="https://npm.elemecdn.com/@fancyapps/ui@4.0.31/dist/fancybox.umd.js"></script><script src="https://npm.elemecdn.com/instant.page@5.1.1/instantpage.js" type="module"></script><script src="https://npm.elemecdn.com/vanilla-lazyload@17.3.1/dist/lazyload.iife.min.js"></script><script src="https://npm.elemecdn.com/node-snackbar@0.1.16/dist/snackbar.min.js"></script><canvas id="universe"></canvas><script async src="https://npm.elemecdn.com/anzhiyu-theme-static@1.0.0/dark/dark.js"></script><script async src="/anzhiyu/random.js"></script><script async="async">(function () {
+  var grt = new Date("03/07/2023 00:00:00"); //设置网站上线时间
+  var now = new Date();
+  var dnum;
+  var hnum;
+  var mnum;
+  var snum;
+  var nowHour;
+
+  // 计算并更新天数、小时数、分钟数和秒数
+  function updateTime() {
+    now = new Date(); // 更新 now 的值
+    nowHour = now.getHours(); // 更新 nowHour 的值
+    var days = (now - grt) / 1000 / 60 / 60 / 24;
+    dnum = Math.floor(days);
+    var hours = (now - grt) / 1000 / 60 / 60 - 24 * dnum;
+    hnum = Math.floor(hours);
+    if (String(hnum).length == 1) {
+      hnum = "0" + hnum;
+    }
+    var minutes = (now - grt) / 1000 / 60 - 24 * 60 * dnum - 60 * hnum;
+    mnum = Math.floor(minutes);
+    if (String(mnum).length == 1) {
+      mnum = "0" + mnum;
+    }
+    var seconds = (now - grt) / 1000 - 24 * 60 * 60 * dnum - 60 * 60 * hnum - 60 * mnum;
+    snum = Math.round(seconds);
+    if (String(snum).length == 1) {
+      snum = "0" + snum;
+    }
+  }
+
+  // 更新网页中显示的网站运行时间
+  function updateHtml() {
+    let currentTimeHtml = "";
+    if (nowHour < 18 && nowHour >= 9) {
+      // 如果是上班时间，默认就是"安知鱼-上班摸鱼中.svg"图片，不需要更改
+      currentTimeHtml = `本站居然运行了 ${dnum} 天<span id='runtime'> ${hnum} 小时 ${mnum} 分 ${snum} 秒 </span><i class='anzhiyufont anzhiyu-icon-heartbeat' style='color:red'></i>`;
+    } else {
+      // 如果是下班时间，插入"安知鱼-下班啦.svg"图片
+      let img = document.querySelector("#workboard .workSituationImg");
+      img.src = "https://resources.qibao.icu/img/blog/gaming.svg";
+      img.title = "爷们要战斗！";
+      img.alt = "爷们要战斗！";
+
+      currentTimeHtml = `本站居然运行了 ${dnum} 天<span id='runtime'> ${hnum} 小时 ${mnum} 分 ${snum} 秒 </span><i class='anzhiyufont anzhiyu-icon-heartbeat' style='color:red'></i>`;
+    }
+
+    if (document.getElementById("runtimeTextTip")) {
+      document.getElementById("runtimeTextTip").innerHTML = currentTimeHtml;
+    }
+  }
+
+  setInterval(() => {
+    updateTime();
+    updateHtml();
+  }, 1000);
+})();</script><script src="https://npm.elemecdn.com/algoliasearch@4.14.2/dist/algoliasearch-lite.umd.js"></script><script src="https://npm.elemecdn.com/instantsearch.js@4.46.1/dist/instantsearch.production.min.js"></script><script src="https://npm.elemecdn.com/hexo-theme-anzhiyu@1.1.8/source/js/search/algolia.js"></script><div class="js-pjax"><script>(()=>{
+  const init = () => {
+    twikoo.init(Object.assign({
+      el: '#twikoo-wrap',
+      envId: 'https://blog.qibao.icu/twikoo',
+      region: '',
+      onCommentLoaded: function () {
+        anzhiyu.loadLightbox(document.querySelectorAll('#twikoo .tk-content img:not(.tk-owo-emotion)'))
+      }
+    }, null))
+  }
+
+  const getCount = () => {
+    const countELement = document.getElementById('twikoo-count')
+    if(!countELement) return
+    twikoo.getCommentsCount({
+      envId: 'https://blog.qibao.icu/twikoo',
+      region: '',
+      urls: [window.location.pathname],
+      includeReply: false
+    }).then(function (res) {
+      countELement.innerText = res[0].count
+    }).catch(function (err) {
+      console.error(err);
+    });
+  }
+
+  const runFn = () => {
+    init()
+    GLOBAL_CONFIG_SITE.isPost && getCount()
+  }
+
+  const loadTwikoo = () => {
+    if (typeof twikoo === 'object') {
+      setTimeout(runFn,0)
+      return
+    } 
+    getScript('https://npm.elemecdn.com/twikoo@1.6.16/dist/twikoo.all.min.js').then(runFn)
+  }
+  if ('Twikoo' === 'Twikoo' || !true) {
+    if (true) anzhiyu.loadComment(document.getElementById('twikoo-wrap'), loadTwikoo)
+    else loadTwikoo()
+  } else {
+    window.loadOtherComment = () => {
+      loadTwikoo()
+    }
+  }
+})()</script><input type="hidden" name="page-type" id="page-type" value="post"></div><script>window.addEventListener('load', () => {
+  const changeContent = (content) => {
+    if (content === '') return content
+
+    content = content.replace(/<img.*?src="(.*?)"?[^\>]+>/ig, '[图片]') // replace image link
+    content = content.replace(/<a[^>]+?href=["']?([^"']+)["']?[^>]*>([^<]+)<\/a>/gi, '[链接]') // replace url
+    content = content.replace(/<pre><code>.*?<\/pre>/gi, '[代码]') // replace code
+    content = content.replace(/<[^>]+>/g,"") // remove html tag
+
+    if (content.length > 150) {
+      content = content.substring(0,150) + '...'
+    }
+    return content
+  }
+
+  const getComment = () => {
+    const runTwikoo = () => {
+      twikoo.getRecentComments({
+        envId: 'https://blog.qibao.icu/twikoo',
+        region: '',
+        pageSize: 6,
+        includeReply: true
+      }).then(function (res) {
+        const twikooArray = res.map(e => {
+          return {
+            'content': changeContent(e.comment),
+            'avatar': e.avatar,
+            'nick': e.nick,
+            'url': e.url + '#' + e.id,
+            'date': new Date(e.created).toISOString()
+          }
+        })
+
+        saveToLocal.set('twikoo-newest-comments', JSON.stringify(twikooArray), 10/(60*24))
+        generateHtml(twikooArray)
+      }).catch(function (err) {
+        const $dom = document.querySelector('#card-newest-comments .aside-list')
+        $dom.innerHTML= "无法获取评论，请确认相关配置是否正确"
+      })
+    }
+
+    if (typeof twikoo === 'object') {
+      runTwikoo()
+    } else {
+      getScript('https://npm.elemecdn.com/twikoo@1.6.16/dist/twikoo.all.min.js').then(runTwikoo)
+    }
+  }
+
+  const generateHtml = array => {
+    let result = ''
+
+    if (array.length) {
+      for (let i = 0; i < array.length; i++) {
+        result += '<div class=\'aside-list-item\'>'
+
+        if (true) {
+          const name = 'data-lazy-src'
+          result += `<a href='${array[i].url}' class='thumbnail'><img ${name}='${array[i].avatar}' alt='${array[i].nick}'><div class='name'><span>${array[i].nick}</span></div></a>`
+        }
+        
+        result += `<div class='content'>
+        <a class='comment' href='${array[i].url}' title='${array[i].content}'>${array[i].content}</a>
+        <time datetime="${array[i].date}">${anzhiyu.diffDate(array[i].date, true)}</time></div>
+        </div>`
+      }
+    } else {
+      result += '没有评论'
+    }
+
+    let $dom = document.querySelector('#card-newest-comments .aside-list')
+    $dom.innerHTML= result
+    window.lazyLoadInstance && window.lazyLoadInstance.update()
+    window.pjax && window.pjax.refresh($dom)
+  }
+
+  const newestCommentInit = () => {
+    if (document.querySelector('#card-newest-comments .aside-list')) {
+      const data = saveToLocal.get('twikoo-newest-comments')
+      if (data) {
+        generateHtml(JSON.parse(data))
+      } else {
+        getComment()
+      }
+    }
+  }
+
+  newestCommentInit()
+  document.addEventListener('pjax:complete', newestCommentInit)
+})</script><script async data-pjax src="https://npm.elemecdn.com/anzhiyu-theme-static@1.0.1/bubble/bubble.js"></script><script>var visitorMail = "visitor@qibao.icu";</script><script data-pjax src="https://npm.elemecdn.com/anzhiyu-theme-static@1.0.0/catalog-bar/catalog-bar.js"></script><script async data-pjax src="https://npm.elemecdn.com/anzhiyu-theme-static@1.0.0/categoryBar/categoryBar.js"></script><script async data-pjax src="https://npm.elemecdn.com/anzhiyu-theme-static@1.0.0/waterfall/waterfall.js"></script><script src="https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/qrcodejs/1.0.0/qrcode.min.js"></script><script>// 初始化函数
+let rm = {};
+
+//禁止图片拖拽
+let imgElements = document.getElementsByTagName("img");
+for (let i = 0; i < imgElements.length; i++) {
+  imgElements[i].addEventListener("dragstart", function (event) {
+    event.preventDefault();
+  });
+}
+
+// 显示菜单
+rm.showRightMenu = function (isTrue, x = 0, y = 0) {
+  console.info(x, y)
+  let rightMenu = document.getElementById("rightMenu");
+  rightMenu.style.top = x + "px";
+  rightMenu.style.left = y + "px";
+  if (isTrue) {
+    rightMenu.style.display = "block";
+    stopMaskScroll();
+  } else {
+    rightMenu.style.display = "none";
+  }
+};
+
+// 隐藏菜单
+rm.hideRightMenu = function () {
+  rm.showRightMenu(false);
+  let rightMenuMask = document.querySelector("#rightmenu-mask");
+  rightMenuMask.style.display = "none";
+};
+
+// 尺寸
+let rmWidth = document.getElementById("rightMenu").offsetWidth;
+let rmHeight = document.getElementById("rightMenu").offsetHeight;
+
+// 重新定义尺寸
+rm.reloadrmSize = function () {
+  rightMenu.style.visibility = "hidden";
+  rightMenu.style.display = "block";
+  // 获取宽度和高度
+  rmWidth = document.getElementById("rightMenu").offsetWidth;
+  rmHeight = document.getElementById("rightMenu").offsetHeight;
+  rightMenu.style.visibility = "visible";
+};
+
+// 获取点击的href
+let domhref = "";
+let domImgSrc = "";
+let globalEvent = null;
+
+// 监听右键初始化
+window.oncontextmenu = function (event) {
+  if (document.body.clientWidth > 768) {
+    let pageX = event.clientX + 10; //加10是为了防止显示时鼠标遮在菜单上
+    let pageY = event.clientY;
+
+    //其他额外菜单
+    const $rightMenuOther = document.querySelector(".rightMenuOther");
+    const $rightMenuPlugin = document.querySelector(".rightMenuPlugin");
+    const $rightMenuCopyText = document.querySelector("#menu-copytext");
+    const $rightMenuPasteText = document.querySelector("#menu-pastetext");
+    const $rightMenuCommentText = document.querySelector("#menu-commenttext");
+    const $rightMenuNewWindow = document.querySelector("#menu-newwindow");
+    const $rightMenuNewWindowImg = document.querySelector("#menu-newwindowimg");
+    const $rightMenuCopyLink = document.querySelector("#menu-copylink");
+    const $rightMenuCopyImg = document.querySelector("#menu-copyimg");
+    const $rightMenuDownloadImg = document.querySelector("#menu-downloadimg");
+    const $rightMenuSearch = document.querySelector("#menu-search");
+    const $rightMenuSearchBaidu = document.querySelector("#menu-searchBaidu");
+    const $rightMenuMusicToggle = document.querySelector("#menu-music-toggle");
+    const $rightMenuMusicBack = document.querySelector("#menu-music-back");
+    const $rightMenuMusicForward = document.querySelector("#menu-music-forward");
+    const $rightMenuMusicPlaylist = document.querySelector("#menu-music-playlist");
+    const $rightMenuMusicCopyMusicName = document.querySelector("#menu-music-copyMusicName");
+
+    let href = event.target.href;
+    let imgsrc = event.target.currentSrc;
+
+    // 判断模式 扩展模式为有事件
+    let pluginMode = false;
+    $rightMenuOther.style.display = "block";
+    globalEvent = event;
+
+    // 检查是否需要复制 是否有选中文本
+    if (selectTextNow && window.getSelection()) {
+      pluginMode = true;
+      $rightMenuCopyText.style.display = "block";
+      $rightMenuCommentText.style.display = "block";
+      $rightMenuSearch.style.display = "block";
+      $rightMenuSearchBaidu.style.display = "block";
+    } else {
+      $rightMenuCopyText.style.display = "none";
+      $rightMenuCommentText.style.display = "none";
+      $rightMenuSearchBaidu.style.display = "none";
+      $rightMenuSearch.style.display = "none";
+    }
+
+    //检查是否右键点击了链接a标签
+    if (href) {
+      pluginMode = true;
+      $rightMenuNewWindow.style.display = "block";
+      $rightMenuCopyLink.style.display = "block";
+      domhref = href;
+    } else {
+      $rightMenuNewWindow.style.display = "none";
+      $rightMenuCopyLink.style.display = "none";
+    }
+
+    //检查是否需要复制图片
+    if (imgsrc) {
+      pluginMode = true;
+      $rightMenuCopyImg.style.display = "block";
+      $rightMenuDownloadImg.style.display = "block";
+      $rightMenuNewWindowImg.style.display = "block";
+      document.getElementById("rightMenu").style.width="12rem"
+      domImgSrc = imgsrc;
+    } else {
+      $rightMenuCopyImg.style.display = "none";
+      $rightMenuDownloadImg.style.display = "none";
+      $rightMenuNewWindowImg.style.display = "none";
+    }
+
+    // 判断是否为输入框
+    if (event.target.tagName.toLowerCase() === "input" || event.target.tagName.toLowerCase() === "textarea") {
+      pluginMode = true;
+      $rightMenuPasteText.style.display = "block";
+    } else {
+      $rightMenuPasteText.style.display = "none";
+    }
+    const navMusicEl = document.querySelector("#nav-music");
+    //判断是否是音乐
+    if (navMusicEl && navMusicEl.contains(event.target)) {
+      pluginMode = true;
+      $rightMenuMusicToggle.style.display = "block";
+      $rightMenuMusicBack.style.display = "block";
+      $rightMenuMusicForward.style.display = "block";
+      $rightMenuMusicPlaylist.style.display = "block";
+      $rightMenuMusicCopyMusicName.style.display = "block";
+    } else {
+      $rightMenuMusicToggle.style.display = "none";
+      $rightMenuMusicBack.style.display = "none";
+      $rightMenuMusicForward.style.display = "none";
+      $rightMenuMusicPlaylist.style.display = "none";
+      $rightMenuMusicCopyMusicName.style.display = "none";
+    }
+
+    // 如果不是扩展模式则隐藏扩展模块
+    if (pluginMode) {
+      $rightMenuOther.style.display = "none";
+      $rightMenuPlugin.style.display = "block";
+    } else {
+      $rightMenuPlugin.style.display = "none";
+    }
+
+    rm.reloadrmSize();
+
+    // 鼠标默认显示在鼠标右下方，当鼠标靠右或靠下时，将菜单显示在鼠标左方\上方
+    if (pageX + rmWidth > window.innerWidth) {
+      pageX -= rmWidth + 10;
+    }
+    if (pageY + rmHeight > window.innerHeight) {
+      pageY -= pageY + rmHeight - window.innerHeight;
+    }
+
+    rm.showRightMenu(true, pageY, pageX);
+    document.getElementById("rightmenu-mask").style.display = "flex";
+    return false;
+  }
+};
+
+// 下载图片状态
+rm.downloadimging = false;
+
+// 复制图片到剪贴板
+rm.writeClipImg = function (imgsrc) {
+  console.log("按下复制");
+  rm.hideRightMenu();
+  anzhiyu.snackbarShow("正在下载中，请稍后", false, 10000);
+  if (rm.downloadimging == false) {
+    rm.downloadimging = true;
+    setTimeout(function () {
+      copyImage(imgsrc);
+      anzhiyu.snackbarShow("复制成功！图片已添加盲水印，请遵守版权协议");
+      rm.downloadimging = false;
+    }, "10000");
+  }
+};
+
+function imageToBlob(imageURL) {
+  const img = new Image();
+  const c = document.createElement("canvas");
+  const ctx = c.getContext("2d");
+  img.crossOrigin = "";
+  img.src = imageURL;
+  return new Promise(resolve => {
+    img.onload = function () {
+      c.width = this.naturalWidth;
+      c.height = this.naturalHeight;
+      ctx.drawImage(this, 0, 0);
+      c.toBlob(
+        blob => {
+          // here the image is a blob
+          resolve(blob);
+        },
+        "image/png",
+        0.75
+      );
+    };
+  });
+}
+
+async function copyImage(imageURL) {
+  const blob = await imageToBlob(imageURL);
+  const item = new ClipboardItem({ "image/png": blob });
+  navigator.clipboard.write([item]);
+}
+
+rm.switchDarkMode = function () {
+  // Switch Between Light And Dark Mode
+  const nowMode = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+  if (nowMode === "light") {
+    activateDarkMode();
+    saveToLocal.set("theme", "dark", 2);
+    GLOBAL_CONFIG.Snackbar !== undefined && anzhiyu.snackbarShow(GLOBAL_CONFIG.Snackbar.day_to_night);
+    document.querySelector(".menu-darkmode-text").textContent = "浅色模式";
+  } else {
+    activateLightMode();
+    saveToLocal.set("theme", "light", 2);
+    GLOBAL_CONFIG.Snackbar !== undefined && anzhiyu.snackbarShow(GLOBAL_CONFIG.Snackbar.night_to_day);
+    document.querySelector(".menu-darkmode-text").textContent = "深色模式";
+  }
+  // handle some cases
+  typeof runMermaid === "function" && window.runMermaid();
+  rm.hideRightMenu();
+  anzhiyu.darkModeStatus();
+};
+
+rm.copyUrl = function (id) {
+  const input = document.createElement("input"); // Create a new <input> element
+  input.id = "copyVal"; // Set the id of the new element to "copyVal"
+  document.body.appendChild(input); // Append the new element to the end of the <body> element
+  
+  const text = id;
+  input.value = text;
+  input.select();
+  input.setSelectionRange(0, input.value.length);
+  document.execCommand("copy");
+  
+  input.remove(); // Remove the <input> element from the DOM
+};
+
+function stopMaskScroll() {
+  if (document.getElementById("rightmenu-mask")) {
+    let xscroll = document.getElementById("rightmenu-mask");
+    xscroll.addEventListener(
+      "mousewheel",
+      function (e) {
+        //阻止浏览器默认方法
+        rm.hideRightMenu();
+        // e.preventDefault();
+      },
+      false
+    );
+  }
+  if (document.getElementById("rightMenu")) {
+    let xscroll = document.getElementById("rightMenu");
+    xscroll.addEventListener(
+      "mousewheel",
+      function (e) {
+        //阻止浏览器默认方法
+        rm.hideRightMenu();
+        // e.preventDefault();
+      },
+      false
+    );
+  }
+}
+
+rm.rightmenuCopyText = function (txt) {
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(txt);
+  }
+  rm.hideRightMenu();
+};
+
+rm.copyPageUrl = function () {
+  var url = window.location.href;
+  rm.copyUrl(url);
+  anzhiyu.snackbarShow("复制本页链接地址成功", false, 2000);
+  rm.hideRightMenu();
+};
+
+rm.sharePage = function () {
+  var content = window.location.href;
+  rm.copyUrl(url);
+  anzhiyu.snackbarShow("复制本页链接地址成功", false, 2000);
+  rm.hideRightMenu();
+};
+
+// 复制当前选中文本
+var selectTextNow = "";
+document.onmouseup = document.ondblclick = selceText;
+
+function selceText() {
+  var txt;
+  if (document.selection) {
+    txt = document.selection.createRange().text;
+  } else {
+    txt = window.getSelection().toString();
+  }
+  selectTextNow = txt !== "" ? txt : "";
+}
+
+// 读取剪切板
+rm.readClipboard = function () {
+  if (navigator.clipboard) {
+    navigator.clipboard.readText().then(clipText => rm.insertAtCaret(globalEvent.target, clipText));
+  }
+};
+
+// 粘贴文本到焦点
+rm.insertAtCaret = function (elemt, value) {
+  const startPos = elemt.selectionStart,
+    endPos = elemt.selectionEnd;
+  if (document.selection) {
+    elemt.focus();
+    var sel = document.selection.createRange();
+    sel.text = value;
+    elemt.focus();
+  } else {
+    if (startPos || startPos == "0") {
+      var scrollTop = elemt.scrollTop;
+      elemt.value = elemt.value.substring(0, startPos) + value + elemt.value.substring(endPos, elemt.value.length);
+      elemt.focus();
+      elemt.selectionStart = startPos + value.length;
+      elemt.selectionEnd = startPos + value.length;
+      elemt.scrollTop = scrollTop;
+    } else {
+      elemt.value += value;
+      elemt.focus();
+    }
+  }
+};
+
+//粘贴文本
+rm.pasteText = function () {
+  const result = rm.readClipboard() || "";
+  rm.hideRightMenu();
+};
+
+//引用到评论
+rm.rightMenuCommentText = function (txt) {
+  rm.hideRightMenu();
+  const postCommentDom = document.getElementById("post-comment");
+  var domTop = postCommentDom.offsetTop;
+  window.scrollTo(0, domTop - 80);
+  if (txt == "undefined" || txt == "null") txt = "好棒！";
+  function setText() {
+    setTimeout(() => {
+      var input = document.getElementsByClassName("el-textarea__inner")[0];
+      if (!input) setText();
+      let evt = document.createEvent("HTMLEvents");
+      evt.initEvent("input", true, true);
+      let inputValue = replaceAll(txt, "\n", "\n> ");
+      input.value = "> " + inputValue + "\n\n";
+      input.dispatchEvent(evt);
+      input.focus();
+      input.setSelectionRange(-1, -1);
+      if (document.getElementById("comment-tips")) {
+        document.getElementById("comment-tips").classList.add("show");
+      }
+    }, 100);
+  }
+  setText();
+};
+
+//替换所有内容
+function replaceAll(string, search, replace) {
+  return string.split(search).join(replace);
+}
+
+// 百度搜索
+rm.searchBaidu = function () {
+  anzhiyu.snackbarShow("即将跳转到百度搜索", false, 2000);
+  setTimeout(function () {
+    window.open("https://www.baidu.com/s?wd=" + selectTextNow);
+  }, "2000");
+  rm.hideRightMenu();
+};
+
+//分享链接
+rm.copyLink = function () {
+  rm.rightmenuCopyText(domhref);
+  anzhiyu.snackbarShow("已复制链接地址");
+};
+
+function addRightMenuClickEvent() {
+  // 添加点击事件
+  document.getElementById("menu-backward").addEventListener("click", function () {
+  window.history.back();
+    rm.hideRightMenu();
+  });
+
+  document.getElementById("menu-forward").addEventListener("click", function () {
+    window.history.forward();
+    rm.hideRightMenu();
+  });
+
+  document.getElementById("menu-refresh").addEventListener("click", function () {
+    window.location.reload();
+  });
+
+  document.getElementById("menu-top").addEventListener("click", function () {
+    anzhiyu.scrollToDest(0, 500);
+    rm.hideRightMenu();
+  });
+
+  const menuLinks = document.querySelectorAll(".menu-link");
+  menuLinks.forEach(function (link) {
+    link.addEventListener("click", rm.hideRightMenu);
+  });
+
+  document.getElementById("menu-darkmode").addEventListener("click", rm.switchDarkMode);
+
+  document.getElementById("menu-home") && document.getElementById("menu-home").addEventListener("click", function () {
+    window.location.href = window.location.origin;
+  });
+
+  document.getElementById("menu-randomPost").addEventListener("click", function () {
+    toRandomPost();
+  });
+
+  document.getElementById("menu-commentBarrage").addEventListener("click", anzhiyu.switchCommentBarrage);
+
+  document.getElementById("rightmenu-mask").addEventListener("click", rm.hideRightMenu);
+
+  document.getElementById("rightmenu-mask").addEventListener("contextmenu", function (event) {
+    rm.hideRightMenu();
+    event.preventDefault(); // Prevent the default context menu from appearing
+  });
+
+  document.getElementById("menu-copy").addEventListener("click", rm.copyPageUrl);
+
+  document.getElementById("menu-pastetext").addEventListener("click", rm.pasteText);
+
+  document.getElementById("menu-copytext").addEventListener("click", function () {
+    rm.rightmenuCopyText(selectTextNow);
+    anzhiyu.snackbarShow("复制成功，复制和转载请标注本文地址");
+  });
+
+  document.getElementById("menu-commenttext").addEventListener("click", function () {
+    rm.rightMenuCommentText(selectTextNow);
+  });
+
+  document.getElementById("menu-newwindow").addEventListener("click", function () {
+    window.open(domhref);
+    rm.hideRightMenu();
+  });
+
+  document.getElementById("menu-copylink").addEventListener("click", rm.copyLink);
+
+  document.getElementById("menu-downloadimg").addEventListener("click", function () {
+    anzhiyu.downloadImage(domImgSrc, "anzhiyu");
+  });
+
+  document.getElementById("menu-newwindowimg").addEventListener("click", function () {
+    window.open(domImgSrc);
+    rm.hideRightMenu();
+  });
+
+  document.getElementById("menu-copyimg").addEventListener("click", function () {
+    rm.writeClipImg(domImgSrc);
+  });
+
+  document.getElementById("menu-searchBaidu").addEventListener("click", rm.searchBaidu);
+
+  //音乐
+  document.getElementById("menu-music-toggle").addEventListener("click", anzhiyu.musicToggle);
+
+  document.getElementById("menu-music-back").addEventListener("click", anzhiyu.musicSkipBack);
+
+  document.getElementById("menu-music-forward").addEventListener("click", anzhiyu.musicSkipForward);
+
+  document.getElementById("menu-music-copyMusicName").addEventListener("click", function () {
+    rm.rightmenuCopyText(anzhiyu.musicGetName());
+    anzhiyu.snackbarShow("复制歌曲名称成功", false, 3000);
+  });
+
+}
+
+addRightMenuClickEvent();</script><script data-pjax>var themeColorMeta = document.querySelector('meta[name="theme-color"]');
+var pageHeaderEl = document.getElementById("page-header");
+var navMusicEl = document.getElementById("nav-music");
+var consoleEl = document.getElementById("console");
+// 已随机的歌曲
+var selectRandomSong = [];
+// 音乐默认声音大小
+var musicVolume = 0.8;
+// 是否切换了周杰伦音乐列表
+var changeMusicListFlag = false;
+// 当前默认播放列表
+var defaultPlayMusicList = [];
+
+document.getElementById("page-name").innerText = document.title.split(" | 安知鱼")[0];
+anzhiyu.initIndexEssay();
+anzhiyu.changeTimeInEssay();
+anzhiyu.removeBodyPaceClass();
+anzhiyu.qrcodeCreate();
+anzhiyu.changeTimeInAlbumDetail();
+anzhiyu.reflashEssayWaterFall();
+anzhiyu.sayhi();
+anzhiyu.stopImgRightDrag();
+anzhiyu.addNavBackgroundInit();
+anzhiyu.setValueToBodyType();
+
+anzhiyu.getCustomPlayList();
+anzhiyu.addEventListenerConsoleMusicList(false);</script><link rel="stylesheet" href="https://npm.elemecdn.com/anzhiyu-theme-static@1.0.6/icon/ali_iconfont_css.css"><canvas class="fireworks" mobile="false"></canvas><script src="https://npm.elemecdn.com/butterfly-extsrc@1.1.3/dist/fireworks.min.js"></script><link rel="stylesheet" href="https://npm.elemecdn.com/anzhiyu-theme-static@1.0.0/aplayer/APlayer.min.css" media="print" onload="this.media='all'"><script src="https://npm.elemecdn.com/anzhiyu-blog-static@1.0.1/js/APlayer.min.js"></script><script src="https://resources.qibao.icu/js/meting.js"></script><script src="https://npm.elemecdn.com/pjax@0.2.8/pjax.min.js"></script><script>let pjaxSelectors = ["meta[property=\"og:image\"]","meta[property=\"og:title\"]","meta[property=\"og:url\"]","meta[property=\"og:type\"]","meta[property=\"og:site_name\"]","meta[property=\"og:description\"]","head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+var pjax = new Pjax({
+  elements: 'a:not([target="_blank"])',
+  selectors: pjaxSelectors,
+  cacheBust: false,
+  analytics: false,
+  scrollRestoration: false
+})
+
+document.addEventListener('pjax:send', function () {
+  // removeEventListener scroll 
+  window.tocScrollFn && window.removeEventListener('scroll', window.tocScrollFn)
+  window.scrollCollect && window.removeEventListener('scroll', scrollCollect)
+  window.anzhiyuScrollFnToDo && window.removeEventListener('scroll', anzhiyuScrollFnToDo)
+
+  document.getElementById('rightside').style.cssText = "opacity: ''; transform: ''"
+  
+  if (window.aplayers) {
+    for (let i = 0; i < window.aplayers.length; i++) {
+      if (!window.aplayers[i].options.fixed) {
+        window.aplayers[i].destroy()
+      }
+    }
+  }
+
+  typeof typed === 'object' && typed.destroy()
+
+  //reset readmode
+  const $bodyClassList = document.body.classList
+  $bodyClassList.contains('read-mode') && $bodyClassList.remove('read-mode')
+})
+
+document.addEventListener('pjax:complete', function () {
+  window.refreshFn()
+
+  document.querySelectorAll('script[data-pjax]').forEach(item => {
+    const newScript = document.createElement('script')
+    const content = item.text || item.textContent || item.innerHTML || ""
+    Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+    newScript.appendChild(document.createTextNode(content))
+    item.parentNode.replaceChild(newScript, item)
+  })
+
+  GLOBAL_CONFIG.islazyload && window.lazyLoadInstance.update()
+
+  typeof chatBtnFn === 'function' && chatBtnFn()
+  typeof panguInit === 'function' && panguInit()
+
+  // google analytics
+  typeof gtag === 'function' && gtag('config', '', {'page_path': window.location.pathname});
+
+  // baidu analytics
+  typeof _hmt === 'object' && _hmt.push(['_trackPageview',window.location.pathname]);
+
+  typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting()
+
+  // prismjs
+  typeof Prism === 'object' && Prism.highlightAll()
+})
+
+document.addEventListener('pjax:error', (e) => {
+  if (e.request.status === 404) {
+    pjax.loadUrl('/404.html')
+  }
+})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
